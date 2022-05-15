@@ -18,6 +18,7 @@ parser.read(f'{selfpath}/config.cfg')
 token = parser.get('iplocate','token') 
 token = token.strip("'")
 muevelog = f'{selfpath}/muevelog.sh '
+#tkn=True
 
 # Colores
 co_rst      = Style.RESET_ALL
@@ -53,23 +54,27 @@ def filtro_ip_propia(ip):
     return True if ip != ownip else False 
 
 
-def consulta_db(ip_consulta):
-    consulta = f'https://ipinfo.io/{ip_consulta}{token}'
-    info_ip = requests.get(consulta).text
-    return loads(info_ip)
+def consulta_ip(ip_consulta, tkn=True):
+    if (re.search(ip_regx, ip_consulta)):
+        match tkn:
+            case True:
+                consulta = f'https://ipinfo.io/{ip_consulta}{token}'
+                info_ip = requests.get(consulta).text
+                return loads(info_ip)
+            case False:    
+                consulta = f'https://ipinfo.io/{ip_consulta}'
+                info_ip = requests.get(consulta).text
+                return loads(info_ip)
+            case None:
+                return  {}
+                # aqui va la consulta a base de datos
 
 
-def consulta(ip_consulta):
-    consulta = f'https://ipinfo.io/{ip_consulta}'
-    info_ip = requests.get(consulta).text
-    info_ip = loads(info_ip)
-    for llave, valor in info_ip.items():
-        print(f'{co_YelB}{llave}\b\t{co_Blu}->{co_rst} {co_Grn}{valor}{co_rst}')
-
-
-def ipLocate(ip):
+def print_ipinfo(ip, tkn=True):
     if (re.search(ip_regx, ip)):
-        consulta(ip)
+        ip_info = consulta_ip(ip, tkn)
+        for llave, valor in ip_info.items():
+            print(f'{co_YelB}{llave}\b\t{co_Blu}->{co_rst} {co_Grn}{valor}{co_rst}')
         print(f'{co_RedB}------------------------------', end='')
         print(f'--------------------------------{co_rst}')
     else:
@@ -77,50 +82,71 @@ def ipLocate(ip):
         print(f'{co_Red}[{co_BlkMgn}{ipr}{co_rst}{co_Red}] no es una IP válida!{co_rst}')
 
 
-def archivo_ips(ips):
+def archivo_ips(ips, tkn=True):
     with open(ips, 'r') as lista:
         for linea in lista:
-            ipLocate(linea)
+            print_ipinfo(linea, tkn)
     sys.exit(0)
 
 
 def main():
-    try: 
-        match sys.argv[1]:
-            case '--sync':
-                print(f'{co_YelB}Sincronizando logs del servidor(bash script){co_rst}')
-                subprocess.check_call(
-                        muevelog+"%s" % "--start",
-                        shell=True)
-            case '-c':
-                print(f'{co_YelB}Cargando logs en base de datos{co_rst}')
-                sql_alch.carga_logs()
-            case '-g':
-                print(f'{co_YelB}Registrando datos de ipinfo{co_rst}')
-                sql_alch.registro_ips()
-            case '-f':
-                if isfile(sys.argv[2]):
-                    archivo_ips(sys.argv[2])
-                else:
-                    print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
-                          f'{co_rst}{co_Red}] no es válido''')
-                    sys.exit(0)
-            case '-h':
-                uso()
-                exit(0)
-            case _:
-                ip = sys.argv[1]
-                ipLocate(ip)
-    except IndexError:
-        print(f'\n{co_Blu}Ingresa una {co_BluB}IP o \'s\' ',end='')
-        print(f'{co_Blu}para salir:{co_rst}')
-        while True:
-            ip = input(f'{co_BluB} -> {co_rst}')
-            if ip in 'sq0SQnN':
-                exit(0)
-            ipLocate(ip)
-    finally:
-        sys.exit(0)
+    if len(sys.argv) > 1:
+        try: 
+            match sys.argv[1]:
+                case '--sync':
+                    print(f'{co_YelB}Sincronizando logs del servidor(bash script){co_rst}')
+                    subprocess.check_call(
+                            muevelog+"%s" % "--start",
+                            shell=True)
+                case '-c':
+                    print(f'{co_YelB}Cargando logs en base de datos{co_rst}')
+                    sql_alch.carga_logs()
+                case '-d':
+                    print(f'{co_YelB}test_db-d{co_rst}')
+                    # PENDIENTE # PENDIENTE
+                    #sql_alch.test_db()
+                case '-D':
+                    print(f'{co_YelB}test_db-D{co_rst}')
+                    # PENDIENTE # PENDIENTE
+                    #sql_alch.test_db()
+                case '-g':
+                    print(f'{co_YelB}Registrando datos de ipinfo{co_rst}')
+                    sql_alch.registro_ips()
+                case '-f':
+                    if isfile(sys.argv[2]):
+                        archivo_ips(sys.argv[2], False)
+                    else:
+                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
+                              f'{co_rst}{co_Red}] no es válido''')
+                        sys.exit(0)
+                case '-F':
+                    if isfile(sys.argv[2]):
+                        archivo_ips(sys.argv[2])
+                    else:
+                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
+                              f'{co_rst}{co_Red}] no es válido''')
+                        sys.exit(0)
+                case '-h':
+                    uso()
+                    exit(0)
+                case '-t':
+                    ip = sys.argv[2]
+                    print_ipinfo(ip)
+                case _:
+                    ip = sys.argv[1]
+                    print_ipinfo(ip, False)
+        except IndexError:
+            print(f'{co_Red} error sys.args! {co_rst}')
+        finally:
+            sys.exit(0)
+
+    print(f'{co_Grn}Ingresa una {co_BluB}IP {co_Grn}o {co_BluB}s '+
+          f'{co_Grn}para salir:{co_rst}')
+    while True:
+        ip = input(f'{co_BluB} -> {co_rst}')
+        if ip in 'sq0SQnN':
+            exit(0)
+        print_ipinfo(ip)
 
 
 def uso():
@@ -129,8 +155,13 @@ def uso():
         {co_cuBlu}Muestra información disponible en ipinfo.io sobre IPs consultadas.{co_rst}
 
     {co_BluB}Uso:{co_rst}
-        {co_YelB}iploc {co_Blu}<IP>             {co_Grn}- Muestra la información de <IP>.{co_rst}
-        {co_YelB}iploc -f {co_Blu}<archivo>     {co_Grn}- Muestra info. de las IPs en <archivo>
+        {co_YelB}iploc {co_Blu}<IP>             {co_Grn}- Consulta la información de <IP> disponible en ipinfo.io.{co_rst}
+        {co_YelB}iploc -t {co_Blu}<IP>          {co_Grn}- Consulta la info. de <IP> usando 'token' de ipinfo.io,
+                                 especificado en config.cfg.{co_rst}
+        {co_YelB}iploc -d {co_Blu}<IP>          {co_Grn}- Consulta la información de <IP> disponible en base de datos.{co_rst}
+        {co_YelB}iploc -f {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (ipinfo.io).{co_rst}
+        {co_YelB}iploc -F {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (token, ipinfo.io).{co_rst}
+        {co_YelB}iploc -D {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (base de datos).{co_rst}
         {co_YelB}iploc -c               {co_Grn}- Carga logs en base de datos.{co_rst}
         {co_YelB}iploc -g               {co_Grn}- Guarda ipinfo de IPs sin registro en la BD.{co_rst}
         {co_YelB}iploc -h               {co_Grn}- Muestra esta ayuda.{co_rst}

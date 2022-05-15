@@ -42,8 +42,12 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
         Muestra información disponible en ipinfo.io sobre IPs consultadas.
 
     Uso:
-        iploc <IP>             - Muestra la información de <IP>.
-        iploc -f <archivo>     - Muestra info. de las IPs en <archivo>
+        iploc <IP>             - Consulta la información de <IP> disponible en ipinfo.io.
+        iploc -t <IP>          - Consulta la info. de <IP> usando 'token' de ipinfo.io, 
+                                 especificado en config.cfg.
+        iploc -f <archivo>     - Consulta info. de las IPs en <archivo> (ipinfo.ip).
+        iploc -D <archivo>     - Consulta info. de las IPs en <archivo> (base de datos).
+        iploc -d <IP>          - Muestra toda la info. disponible de <IP> registrada en BD.
         iploc -c               - Carga logs en base de datos.
         iploc -g               - Guarda ipinfo de IPs sin registro en la BD.
         iploc -h               - Muestra esta ayuda.

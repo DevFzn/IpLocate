@@ -2,11 +2,12 @@ import os
 import time
 from datetime import datetime
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Sequence, update
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.schema import ForeignKey
 import iplocate as ipl
 
 logs_dir = ipl.parser.get('bash_script', 'destino_log')
@@ -15,13 +16,36 @@ base_de_datos = f'sqlite:////{ipl.selfpath}/ipinfo.db'
 
 Base = declarative_base()
 
+# Tabla registro ip info
+class Registro(Base):
+    __tablename__ = 'registro'
+    ip           = Column(String, primary_key=True)
+    hostname     = Column(String, nullable=True)
+    anycast      = Column(String, nullable=True)
+    cuidad       = Column(String, nullable=True)
+    region       = Column(String, nullable=True)
+    pais         = Column(String, nullable=True)
+    geoloc       = Column(String, nullable=True)
+    organizacion = Column(String, nullable=True)
+    fecha_reg    = Column(Integer, default=int(time.mktime(time.localtime())))
+    tzone        = Column(String, nullable=True)
+    cod_post     = Column(String, nullable=True)
+    #link         = Column(String, nullable=True)
+    visitas      = relationship("Visita",
+                                order_by="Visita.id",
+                                back_populates="visita_ip",
+                                cascade="all, delete, delete-orphan")
+
+
 class Visita(Base):
     __tablename__ = 'visita'
     id       = Column(Integer, Sequence('visita_id_seq'), primary_key=True)
-    ip       = Column(String)
+    ip       = Column(String, ForeignKey('registro.ip'))
     html     = Column(Integer)
     fecha    = Column(Integer)
     registro = Column(Integer, default=0) 
+    visita_ip  = relationship("Registro", back_populates="visitas")
+    
 
     def get_fecha(self):
         return time.asctime(time.localtime(int(self.fecha.__repr__())))
@@ -43,24 +67,6 @@ class Visita(Base):
                         self.html,
                         self.get_fecha(),
                         self.consulta_registro())
-
-
-# Tabla registro ip info
-class Registro(Base):
-    __tablename__ = 'registro'
-    id           = Column(Integer, Sequence('registro_id_seq'), primary_key=True)
-    ip           = Column(String)
-    hostname     = Column(String, nullable=True)
-    anycast      = Column(String, nullable=True)
-    cuidad       = Column(String, nullable=True)
-    region       = Column(String, nullable=True)
-    pais         = Column(String, nullable=True)
-    geoloc       = Column(String, nullable=True)
-    organizacion = Column(String, nullable=True)
-    fecha_reg    = Column(Integer, default=int(time.mktime(time.localtime())))
-    tzone        = Column(String, nullable=True)
-    cod_post     = Column(String, nullable=True)
-    link         = Column(String, nullable=True)
 
 
 engine = create_engine(base_de_datos)
@@ -110,8 +116,12 @@ def epoch_to_local(fecha):
 
 
 def ip_registrada(ip):
-    ip_reg = session.query(Visita).filter(Visita.ip==ip).filter(Visita.registro==1).first()
-    return 0 if ip_reg is None else ip_reg.registro
+    try:
+        ip_reg = session.query(Visita).filter(Visita.ip==ip).filter(Visita.registro==1).first()
+    except Exception as ex:
+        print('Exception', ex)
+    finally:
+        return 0 if ip_reg is None else ip_reg.registro
 
 
 def carga_access_log(log):
@@ -133,10 +143,12 @@ def carga_access_log(log):
             os.remove(log)
             return True
         except:
-            print(f'{ipl.co_Red}Ocurrio un error al intentar abrir/cargar: [{log}]{ipl.co_rst}\n')
+            print(f'{ipl.co_Red}Error al intentar abrir/cargar: '+
+                  f'[{ipl.co_rst}{log}{ipl.co_Red}]\n')
             return False
     else:
-        print(f'{ipl.co_Red}log: [{log}] inexistente.{ipl.co_rst}\n')
+        print(f'{ipl.co_RedB}log: [{ipl.co_rst}{log}{ipl.co_RedB}]'+ 
+              f' inexistente.{ipl.co_rst}\n')
     return False
 
 
@@ -159,11 +171,12 @@ def carga_error_logs(log):
             os.remove(log)
             return True
         except:
-            print(f'{ipl.co_Red}Ocurrio un error'+
-                  f'al intentar abrir/cargar: [{log}]{ipl.co_rst}\n')
+            print(f'{ipl.co_Red}Error al intentar abrir/cargar: '+
+                  f'[{ipl.co_rst}{log}{ipl.co_Red}]\n')
             return False
     else:
-        print(f'{ipl.co_Red}log: [{log}] inexistente.{ipl.co_rst}\n')
+        print(f'{ipl.co_RedB}log: [{ipl.co_rst}{log}{ipl.co_RedB}]'+ 
+              f' inexistente.{ipl.co_rst}\n')
         return False
 
 
@@ -188,26 +201,42 @@ def carga_registro_ip(ip_info):
         info_dic['organizacion'] = ip_info['org'] if 'org' in ip_info else None
         info_dic['tzone'] = ip_info['timezone'] if 'timezone' in ip_info else None
         info_dic['cod_post'] = ip_info['postal'] if 'postal' in ip_info else None
-        info_dic['link'] = ip_info['readme'] if 'readme' in ip_info else None
-        session.add(Registro( ip = info_dic['ip'],
-                              hostname = info_dic['hostname'],
-                              anycast = info_dic['anycast'],
-                              cuidad = info_dic['ciudad'],
-                              region = info_dic['region'],
-                              pais = info_dic['pais'],
-                              geoloc = info_dic['geoloc'],
-                              organizacion = info_dic['organizacion'],
-                              fecha_reg = int(time.mktime(time.localtime())),
-                              tzone = info_dic['tzone'],
-                              cod_post = info_dic['cod_post'],
-                              link = info_dic['link'],
-                              ))
-        session.commit()
+        try:
+            session.add(Registro( ip = info_dic['ip'],
+                                  hostname = info_dic['hostname'],
+                                  anycast = info_dic['anycast'],
+                                  cuidad = info_dic['ciudad'],
+                                  region = info_dic['region'],
+                                  pais = info_dic['pais'],
+                                  geoloc = info_dic['geoloc'],
+                                  organizacion = info_dic['organizacion'],
+                                  fecha_reg = int(time.mktime(time.localtime())),
+                                  tzone = info_dic['tzone'],
+                                  cod_post = info_dic['cod_post'],
+                                  ))
+            session.commit()
+        except Exception as ex:
+            print('Exception: ', ex)
     stmt = update(Visita).where(Visita.ip == ip_info['ip']).values(registro=1).\
     execution_options(synchronize_session="fetch")
     #result = session.execute(stmt)
-    session.execute(stmt)
-    session.commit()
+    try:
+        session.execute(stmt)
+        session.commit()
+    except Exception as ex:
+        print('Exception: ', ex)
+
+def registro():
+    pass
+
+def test_db():
+    try:
+        session.add(Visita(ip='dummy_ip', html=000, fecha=int(time.mktime(time.localtime()))))
+        session.commit()
+        session.add(Registro(ip ='dummy_ip'))
+        session.commit()
+    except Exception as ex:
+        print('Exception: ', ex)
 
 
 def registro_ips():
@@ -220,5 +249,5 @@ def registro_ips():
             registrar = False
         #ip_actual= res.ip.split('\n')[0]
         ip_actual= res.ip
-        ip_info = ipl.consulta_db(ip_actual)
+        ip_info = ipl.consulta_ip(ip_actual, True)
         carga_registro_ip(ip_info)
