@@ -36,6 +36,23 @@ class Registro(Base):
                                 back_populates="visita_ip",
                                 cascade="all, delete, delete-orphan")
 
+    def get_fecha(self):
+        return time.asctime(time.localtime(int(self.fecha_reg.__repr__())))
+
+
+    def __repr__(self) -> str:
+        #print('en repr')
+        try:
+            rep = f'ip={self.ip};host={self.hostname};anycast={self.anycast};'+\
+                  f'cuidad={self.cuidad};region={self.region};pais={self.pais};'+\
+                  f'geoloc={self.geoloc};organizacion={self.organizacion};'+\
+                  f'fecha_reg={self.get_fecha()};tzone={self.tzone};cod_post={self.cod_post}'
+            #print('Repr:', rep)
+            return rep
+        except Exception as ex:
+            print('Exception :', ex)
+            return "error repr"
+
 
 class Visita(Base):
     __tablename__ = 'visita'
@@ -50,23 +67,16 @@ class Visita(Base):
     def get_fecha(self):
         return time.asctime(time.localtime(int(self.fecha.__repr__())))
 
-    def fecha_local(self):
-        fecha_l = self.get_fecha()
-        #fecha_l = time.asctime(self.fecha)
-        return fecha_l
-        #fecha_l = time.strftime(fecha_l)
-
     def consulta_registro(self):
         return True if self.registro == 1 else False
 
     def __repr__(self) -> str:
-        return "ID: {}\nIP: {}\nHtmlCode: {}\n" \
-               "Fecha: {}\nRegistrado: {}\n".format(
-                        self.id, 
-                        self.ip, 
-                        self.html,
-                        self.get_fecha(),
-                        self.consulta_registro())
+        try:
+            rep = f'id={self.id},ip={self.ip},html={self.html},fecha={self.get_fecha()}'
+            return rep
+        except Exception as ex:
+            print('Exception :', ex)
+            return "Error repr Visita"
 
 
 engine = create_engine(base_de_datos)
@@ -120,8 +130,8 @@ def ip_registrada(ip):
         ip_reg = session.query(Visita).filter(Visita.ip==ip).filter(Visita.registro==1).first()
     except Exception as ex:
         print('Exception', ex)
-    finally:
-        return 0 if ip_reg is None else ip_reg.registro
+        ip_reg = None
+    return 0 if ip_reg is None else ip_reg.registro
 
 
 def carga_access_log(log):
@@ -226,8 +236,14 @@ def carga_registro_ip(ip_info):
     except Exception as ex:
         print('Exception: ', ex)
 
-def registro():
-    pass
+def consulta_db(ip):
+    try:
+        statement = session.query(Registro, Visita).join('visitas').filter_by(ip=ip)
+        result = session.execute(statement).all()
+        return result
+    except Exception as ex:
+        print('Exception consulta_db:\n', ex)
+
 
 def test_db():
     try:

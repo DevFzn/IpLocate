@@ -66,17 +66,52 @@ def consulta_ip(ip_consulta, tkn=True):
                 info_ip = requests.get(consulta).text
                 return loads(info_ip)
             case None:
-                return  {}
+                resp = sql_alch.consulta_db(ip_consulta)
+                #print('consulta_ip :', resp)
+                return  resp
                 # aqui va la consulta a base de datos
 
 
 def print_ipinfo(ip, tkn=True):
     if (re.search(ip_regx, ip)):
         ip_info = consulta_ip(ip, tkn)
-        for llave, valor in ip_info.items():
-            print(f'{co_YelB}{llave}\b\t{co_Blu}->{co_rst} {co_Grn}{valor}{co_rst}')
-        print(f'{co_RedB}------------------------------', end='')
-        print(f'--------------------------------{co_rst}')
+        if isinstance(ip_info, dict):
+            for llave, valor in ip_info.items():
+                print(f'{co_YelB}{llave}\b\t{co_Blu}->{co_rst} {co_Grn}{valor}{co_rst}')
+            print(f'{co_RedB}------------------------------', end='')
+            print(f'--------------------------------{co_rst}')
+        elif isinstance(ip_info, list):
+            contad=0
+            for tupla in ip_info:
+                if contad < 1: 
+                    for ind, val in enumerate(tupla):
+                        if ind == 0:
+                            print(f'{co_RedB}-------------------------'
+                                  f'---------------------------{co_rst}')
+                            for dato in str(val).split(';'):
+                                print(f'{co_Blu}| {co_BluB}{dato.split("=")[0].ljust(12)}'
+                                      f'{co_Blu}| {co_rst}{dato.split("=")[1]}{co_rst}')
+                            print(f'{co_BluD}-------------------------'
+                                  f'---------------------------{co_rst}')
+                            print(f'{co_Blu}|{co_YelB} Codigo html {co_Blu}|'
+                                  f'{co_YelB}     Fecha Visita{co_rst}')
+                        else:
+                            codig = str(val).split(',')[2].split('=')[1]
+                            fecha = str(val).split(',')[3].split('=')[1]
+                            print(f'{co_Blu}|{co_GrnB}     {codig}     {co_Blu}|'
+                                  f'{co_Grn} {fecha}{co_rst}')
+                else:
+                    for ind, val in enumerate(tupla):
+                        if ind > 0:
+                            codig = str(val).split(',')[2].split('=')[1]
+                            fecha = str(val).split(',')[3].split('=')[1]
+                            print(f'{co_Blu}|{co_GrnB}     {codig}     {co_Blu}|'
+                                   f'{co_Grn} {fecha}{co_rst}')
+                contad+=1
+            print(f'{co_RedB}-------------------------'
+                  f'---------------------------{co_rst}')
+        else:
+            print('otra wea: ', type(ip_info))
     else:
         ipr = ip.split('\n')[0]
         print(f'{co_Red}[{co_BlkMgn}{ipr}{co_rst}{co_Red}] no es una IP válida!{co_rst}')
@@ -85,6 +120,8 @@ def print_ipinfo(ip, tkn=True):
 def archivo_ips(ips, tkn=True):
     with open(ips, 'r') as lista:
         for linea in lista:
+            if '\n' in linea:
+                linea = linea.split('\n')[0]
             print_ipinfo(linea, tkn)
     sys.exit(0)
 
@@ -102,13 +139,17 @@ def main():
                     print(f'{co_YelB}Cargando logs en base de datos{co_rst}')
                     sql_alch.carga_logs()
                 case '-d':
-                    print(f'{co_YelB}test_db-d{co_rst}')
-                    # PENDIENTE # PENDIENTE
-                    #sql_alch.test_db()
+                    print(f'{co_YelB}Consulta base de datos:{co_rst}')
+                    ip = sys.argv[2]
+                    print_ipinfo(ip, None)
                 case '-D':
-                    print(f'{co_YelB}test_db-D{co_rst}')
-                    # PENDIENTE # PENDIENTE
-                    #sql_alch.test_db()
+                    print(f'{co_YelB}Consulta por archivo en base de datos:{co_rst}')
+                    if isfile(sys.argv[2]):
+                        archivo_ips(sys.argv[2], None)
+                    else:
+                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
+                              f'{co_rst}{co_Red}] no es válido''')
+                        sys.exit(0)
                 case '-g':
                     print(f'{co_YelB}Registrando datos de ipinfo{co_rst}')
                     sql_alch.registro_ips()
@@ -152,9 +193,14 @@ def main():
 def uso():
     ayuda = f"""
     {co_BluB}ipLocate{co_rst}
-        {co_cuBlu}Muestra información disponible en ipinfo.io sobre IPs consultadas.{co_rst}
+        {co_cuBlu}Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
+        Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
+        en base de datos.
+        Consultas y reportes según información en la base de datos.{co_rst}
 
-    {co_BluB}Uso:{co_rst}
+        {co_YelB}iploc -h               {co_Grn}- Muestra esta ayuda.{co_rst}
+
+    {co_BluB}Uso para consultas:{co_rst}
         {co_YelB}iploc {co_Blu}<IP>             {co_Grn}- Consulta la información de <IP> disponible en ipinfo.io.{co_rst}
         {co_YelB}iploc -t {co_Blu}<IP>          {co_Grn}- Consulta la info. de <IP> usando 'token' de ipinfo.io,
                                  especificado en config.cfg.{co_rst}
@@ -162,10 +208,11 @@ def uso():
         {co_YelB}iploc -f {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (ipinfo.io).{co_rst}
         {co_YelB}iploc -F {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (token, ipinfo.io).{co_rst}
         {co_YelB}iploc -D {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (base de datos).{co_rst}
+
+    {co_BluB}Operaciones base de datos:{co_rst}
+        {co_YelB}iploc --sync           {co_Grn}- Sincroniza logs del servidor (bash script).{co_rst}
         {co_YelB}iploc -c               {co_Grn}- Carga logs en base de datos.{co_rst}
         {co_YelB}iploc -g               {co_Grn}- Guarda ipinfo de IPs sin registro en la BD.{co_rst}
-        {co_YelB}iploc -h               {co_Grn}- Muestra esta ayuda.{co_rst}
-        {co_YelB}iploc --sync           {co_Grn}- Sincroniza logs del servidor (bash script).{co_rst}
 
     """
     print(ayuda)

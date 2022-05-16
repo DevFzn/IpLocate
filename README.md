@@ -39,20 +39,23 @@ Crea base de datos ***SQLite3*** **`./ipinfo.db`** con tablas de **registro** y 
 ej. alias `alias iploc='~/ruta/script/iplocate.py'`  
 ```bash
     ipLocate
-        Muestra información disponible en ipinfo.io sobre IPs consultadas.
+        Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
+        Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
+        en base de datos.
+        Consultas y reportes según información en la base de datos.
 
     Uso:
         iploc <IP>             - Consulta la información de <IP> disponible en ipinfo.io.
-        iploc -t <IP>          - Consulta la info. de <IP> usando 'token' de ipinfo.io, 
+        iploc -t <IP>          - Consulta la info. de <IP> usando 'token' de ipinfo.io,
                                  especificado en config.cfg.
-        iploc -f <archivo>     - Consulta info. de las IPs en <archivo> (ipinfo.ip).
+        iploc -d <IP>          - Consulta la información de <IP> disponible en base de datos.
+        iploc -f <archivo>     - Consulta info. de las IPs en <archivo> (ipinfo.io).
+        iploc -F <archivo>     - Consulta info. de las IPs en <archivo> (token, ipinfo.io).
         iploc -D <archivo>     - Consulta info. de las IPs en <archivo> (base de datos).
-        iploc -d <IP>          - Muestra toda la info. disponible de <IP> registrada en BD.
         iploc -c               - Carga logs en base de datos.
         iploc -g               - Guarda ipinfo de IPs sin registro en la BD.
         iploc -h               - Muestra esta ayuda.
         iploc --sync           - Sincroniza logs del servidor (bash script).
-
 ```
 
 **`iploc --sync`**  
