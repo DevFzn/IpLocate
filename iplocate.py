@@ -86,30 +86,52 @@ def print_ipinfo(ip, tkn=True):
                 if contad < 1: 
                     for ind, val in enumerate(tupla):
                         if ind == 0:
-                            print(f'{co_RedB}-------------------------'
-                                  f'---------------------------{co_rst}')
+                            print(f'{co_BluD} _____________________________'
+                                  f'________________________________{co_rst}')
                             for dato in str(val).split(';'):
                                 print(f'{co_Blu}| {co_BluB}{dato.split("=")[0].ljust(12)}'
                                       f'{co_Blu}| {co_rst}{dato.split("=")[1]}{co_rst}')
-                            print(f'{co_BluD}-------------------------'
-                                  f'---------------------------{co_rst}')
-                            print(f'{co_Blu}|{co_YelB} Codigo html {co_Blu}|'
-                                  f'{co_YelB}     Fecha Visita{co_rst}')
+                            print(f'{co_BluD} ________________________ __'
+                                  f'_________ __________ _____________{co_rst}')
+                            print(f'{co_Blu}|{co_YelB}      Fecha Visita      {co_rst}'
+                                  f'{co_Blu}|{co_YelB}Codigo html{co_Blu}|'
+                                  f'{co_YelB}  Metodo  {co_rst}'
+                                  f'{co_Blu}|{co_YelB}   Request {co_rst}')
+                            print(f'{co_Blu}|------------------------|--'
+                                  f'---------|----------|-------------{co_rst}')
                         else:
-                            codig = str(val).split(',')[2].split('=')[1]
-                            fecha = str(val).split(',')[3].split('=')[1]
-                            print(f'{co_Blu}|{co_GrnB}     {codig}     {co_Blu}|'
-                                  f'{co_Grn} {fecha}{co_rst}')
+                            # aqui modificar para representar las nuevas columnas de tabla visita
+                            codig = str(val).split(',')[2].split('=')[1].center(11)
+                            fecha = str(val).split(',')[3].split('=')[1].ljust(24)
+                            metodo = (str(val).split(',')[4].split('=')[1])
+                            metodo = '---'.center(10) if metodo == 'None' else metodo.center(10)
+                            request = str(val).split(',')[5].split('=')[1]
+                            request = request[:86]+'...' if len(request) > 90 else request
+                            request = '---' if request == 'None' else request
+                            #if len(request) > 90:
+                            #    request = request[:86]+'...'
+                            print(f'{co_Blu}|{co_Yel}{fecha}{co_rst}'
+                                  f'{co_Blu}|{co_GrnB}{codig}'
+                                  f'{co_Blu}|{co_Grn}{metodo}{co_rst}'
+                                  f'{co_Blu}|{co_Grn}{request}{co_rst}')
                 else:
                     for ind, val in enumerate(tupla):
                         if ind > 0:
-                            codig = str(val).split(',')[2].split('=')[1]
-                            fecha = str(val).split(',')[3].split('=')[1]
-                            print(f'{co_Blu}|{co_GrnB}     {codig}     {co_Blu}|'
-                                   f'{co_Grn} {fecha}{co_rst}')
+                            # aqui modificar para representar las nuevas columnas de tabla visita
+                            codig = str(val).split(',')[2].split('=')[1].center(11)
+                            fecha = str(val).split(',')[3].split('=')[1].ljust(24)
+                            metodo = (str(val).split(',')[4].split('=')[1])
+                            metodo = '---'.center(10) if metodo == 'None' else metodo.center(10)
+                            request = str(val).split(',')[5].split('=')[1]
+                            request = request[:86]+'...' if len(request) > 90 else request
+                            request = '---' if request == 'None' else request
+                            print(f'{co_Blu}|{co_Yel}{fecha}{co_rst}'
+                                  f'{co_Blu}|{co_GrnB}{codig}'
+                                  f'{co_Blu}|{co_Grn}{metodo}{co_rst}'
+                                  f'{co_Blu}|{co_Grn}{request}{co_rst}')
                 contad+=1
-            print(f'{co_RedB}-------------------------'
-                  f'---------------------------{co_rst}')
+            print(f'{co_RedB}-------------------------------'
+                  f'-------------------------------{co_rst}')
         else:
             print('otra wea: ', type(ip_info))
     else:

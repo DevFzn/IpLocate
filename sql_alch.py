@@ -58,8 +58,10 @@ class Visita(Base):
     __tablename__ = 'visita'
     id       = Column(Integer, Sequence('visita_id_seq'), primary_key=True)
     ip       = Column(String, ForeignKey('registro.ip'))
-    html     = Column(Integer)
+    cod_html = Column(Integer)
     fecha    = Column(Integer)
+    metodo   = Column(String, default='---')
+    consulta = Column(String, default='---')
     registro = Column(Integer, default=0) 
     visita_ip  = relationship("Registro", back_populates="visitas")
     
@@ -72,7 +74,8 @@ class Visita(Base):
 
     def __repr__(self) -> str:
         try:
-            rep = f'id={self.id},ip={self.ip},html={self.html},fecha={self.get_fecha()}'
+            rep = f'id={self.id},ip={self.ip},html={self.cod_html},'\
+                  f'fecha={self.get_fecha()},metodo={self.metodo},request={self.consulta}'
             return rep
         except Exception as ex:
             print('Exception :', ex)
@@ -142,12 +145,48 @@ def carga_access_log(log):
                 for linea in lista:
                     ip = linea.split(' ')[0]
                     if ipl.filtro_ip_propia(ip):
-                        fecha = fecha_access_to_epoch(linea.split(' ')[3][1:])
-                        codigo= int(linea.split('"')[2].split(' ')[1])
+                        try:
+                            ip = linea.split(' ')[0]
+                        except Exception as ex:
+                            ip = None
+                            print('Exception split IP', ex)
+                        try:
+                            metodo = linea.split('"')[1].split(' ')[0]
+                            if len(metodo) > 10 or len(metodo) < 2:
+                                metodo = '---'
+                        except Exception as ex:
+                            metodo = '---'
+                        try:
+                            url = linea.split('"')[1].split(' ')[1]
+                            if len(url) > 254:
+                                url = url[:252]+'...'
+                        except Exception as ex:
+                            url = '---'
+                        try:
+                            codigo = int(linea.split('"')[2].split(' ')[1])
+                            if len(str(codigo)) != 3:
+                                codigo = 0
+                        except Exception as ex:
+                            codigo = 0
+                        try:
+                            fecha = linea.split(' ')[3][1:]
+                            fecha = fecha_access_to_epoch(fecha)
+                        except Exception as ex:
+                            fecha = None
+                            print('Exception split Fecha:', ex)
                         if ip_registrada(ip):
-                            session.add(Visita(ip=ip, html=codigo, fecha=fecha, registro=1))
+                            session.add(Visita(ip=ip,
+                                               cod_html=codigo,
+                                               fecha=fecha,
+                                               metodo=metodo,
+                                               consulta=url,
+                                               registro=1))
                         else:
-                            session.add(Visita(ip=ip, html=codigo, fecha=fecha))
+                            session.add(Visita(ip=ip,
+                                               cod_html=codigo,
+                                               fecha=fecha,
+                                               metodo=metodo,
+                                               consulta=url))
             session.commit()
             print(f'{ipl.co_Grn}Carga completa.. borrando log{ipl.co_rst}\n')
             os.remove(log)
@@ -168,14 +207,65 @@ def carga_error_logs(log):
         try:
             with open(log, 'r') as lista:
                 for linea in lista:
-                    ip = linea.split('client: ')[1].split(',')[0]
+                    linea = linea.split('\n')[0]
+                    if (linea.rfind('[notice]') > 0 or linea.rfind('[crit]') > 0):
+                        if linea.find('[crit]') > 0:
+                            try:
+                                ip = linea.split('client: ')[1].split(',')[0]
+                            except Exception as ex:
+                                print('Exception Ip error_log: ', ex)
+                                ip = None
+                            try:
+                                fecha = ' '.join(linea.split(' ')[0:2])
+                            except Exception:
+                                fecha = None
+                            try:
+                                url = linea.split('"')[1].split(' ')[1]
+                                if len(url) > 254:
+                                    url = url[:252]+'...'
+                            except Exception:
+                                url = ' '.join(linea.split(' ')[5:])
+                                #url = '---'
+                            try:
+                                metodo = linea.split('"')[1].split(' ')[0]
+                            except Exception:
+                                metodo = '---'
+                    else:
+                        try:
+                            ip = linea.split('client: ')[1].split(',')[0]
+                        except Exception as ex:
+                            print('Exception Ip error_log: ', ex)
+                            ip = None
+                        try:
+                            fecha = ' '.join(linea.split(' ')[0:2])
+                        except Exception:
+                            fecha = None
+                        try:
+                            metodo = linea.split('request: "')[1].split(' ')[0]
+                        except Exception:
+                            metodo = '---'
+                        try:
+                            url = linea.split('"')[1].split(' ')[0]
+                            if len(url) > 254:
+                                url = url[:252]+'...'
+                        except Exception:
+                            url = '---'
                     if ipl.filtro_ip_propia(ip):
-                        fecha  = fecha_error_to_epoch(' '.join(linea.split()[0:2]))
-                        codigo = 300
+                        fecha  = int(fecha_error_to_epoch(fecha))
+                        codigo = 0
                         if ip_registrada(ip):
-                            session.add(Visita(ip=ip, html=codigo, fecha=fecha, registro=1))
+                            session.add(Visita(ip=ip,
+                                               cod_html=codigo,
+                                               fecha=fecha,
+                                               consulta=url,
+                                               metodo=metodo,
+                                               registro=1))
                         else:
-                            session.add(Visita(ip=ip, html=codigo, fecha=fecha))
+                            session.add(Visita(ip=ip,
+                                               cod_html=codigo,
+                                               fecha=fecha,
+                                               consulta=url,
+                                               metodo=metodo))
             session.commit()
             print(f'{ipl.co_Grn}Carga completa.. borrando log{ipl.co_rst}\n')
             os.remove(log)
@@ -247,7 +337,7 @@ def consulta_db(ip):
 
 def test_db():
     try:
-        session.add(Visita(ip='dummy_ip', html=000, fecha=int(time.mktime(time.localtime()))))
+        session.add(Visita(ip='dummy_ip', cod_html=000, fecha=int(time.mktime(time.localtime()))))
         session.commit()
         session.add(Registro(ip ='dummy_ip'))
         session.commit()
