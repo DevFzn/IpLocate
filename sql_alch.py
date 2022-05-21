@@ -403,36 +403,14 @@ def registro_ips():
             res = session.execute(statement).scalars().first()
             total_act = len(session.execute(statement).scalars().all())
             avance = total_ant - total_act
-            print('total update:',total,'total_act:', total_act,' Diferencia: ', avance )
+            #print('total update:',total,'total_act:', total_act,' Diferencia: ', avance )
             total_ant = total_act
             if res is None:
-                print('en res none')
-                progress.update (task1, advance=total)
-            ip_actual= res.ip
-            ip_info = consulta_ip(ip_actual, True)
-            carga_registro_ip(ip_info)
-            progress.update(task1, advance=avance)
-    console.print('\n[bold yellow]Registro en baso de datos finalizado.[/bold yellow]')
+                progress.update (task1, advance=avance)
+            else:
+                ip_actual= res.ip
+                ip_info = consulta_ip(ip_actual, True)
+                carga_registro_ip(ip_info)
+                progress.update(task1, advance=avance)
+    console.print('\n[bold yellow]Registro en base de datos finalizado.[/bold yellow]')
 
-
-#def registro_ips(): # OLD
-#    registrar = True
-#    statement = select(Visita).filter_by(registro=0)
-#    while registrar:
-#        res = session.execute(statement).scalars().first()
-#        if res is None:
-#            console.print('[bold yellow]Registro en baso de datos finalizado.[/bold yellow]')
-#            registrar = False
-#        ip_actual= res.ip
-#        ip_info = consulta_ip(ip_actual, True)
-#        carga_registro_ip(ip_info)
-
-
-#def test_db():
-#    try:
-#        session.add(Visita(ip='dummy_ip', cod_html=000, fecha=int(time.mktime(time.localtime()))))
-#        session.commit()
-#        session.add(Registro(ip ='dummy_ip'))
-#        session.commit()
-#    except Exception as ex:
-#        print('Exception: ', ex)
