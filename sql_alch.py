@@ -1,5 +1,8 @@
 import os
 import time
+import subprocess
+from iplocate import re, requests, token, filtro_ip_propia, selfpath, parser
+from json import loads
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import relationship, sessionmaker
@@ -8,12 +11,15 @@ from sqlalchemy import Column, Integer, String, Sequence, update
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import select
 from sqlalchemy.sql.schema import ForeignKey
-import iplocate as ipl
+from rich.progress import Progress, track
+from rich.console import Console
 
-logs_dir = ipl.parser.get('bash_script', 'destino_log')
+ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+logs_dir = parser.get('bash_script', 'destino_log')
 logs_dir = logs_dir.strip("'")
-base_de_datos = f'sqlite:////{ipl.selfpath}/ipinfo.db'
+base_de_datos = f'sqlite:////{selfpath}/ipinfo.db'
 
+console = Console()
 Base = declarative_base()
 
 # Tabla registro ip info
@@ -139,77 +145,115 @@ def ip_registrada(ip):
 
 def carga_access_log(log):
     if os.path.exists(log):
-        print(f'{ipl.co_Yel}Registrando [{log}]{ipl.co_rst}')
+        nombre_log = log.split('/')[-1]
+        console.print(f'[bold yellow]Registrando [[/bold yellow]{nombre_log}[bold yellow]][/bold yellow]')
         try:
             with open(log, 'r') as lista:
-                for linea in lista:
-                    ip = linea.split(' ')[0]
-                    if ipl.filtro_ip_propia(ip):
-                        try:
-                            ip = linea.split(' ')[0]
-                        except Exception as ex:
-                            ip = None
-                            print('Exception split IP', ex)
-                        try:
-                            metodo = linea.split('"')[1].split(' ')[0]
-                            if len(metodo) > 10 or len(metodo) < 2:
+                try:
+                    largo = subprocess.run(['wc', '-l', log], capture_output=True, text=True)
+                    largo = int(largo.stdout.split(' ')[0])
+                    for linea in track(lista, total=largo, description='[blue bold]Cargando [/blue bold]'):
+                        ip = linea.split(' ')[0]
+                        if filtro_ip_propia(ip):
+                            try:
+                                ip = linea.split(' ')[0]
+                            except Exception as ex:
+                                ip = None
+                                print('Exception split IP', ex)
+                            try:
+                                metodo = linea.split('"')[1].split(' ')[0]
+                                if len(metodo) > 10 or len(metodo) < 2:
+                                    metodo = '---'
+                            except Exception as ex:
                                 metodo = '---'
-                        except Exception as ex:
-                            metodo = '---'
-                        try:
-                            url = linea.split('"')[1].split(' ')[1]
-                            if len(url) > 254:
-                                url = url[:252]+'...'
-                        except Exception as ex:
-                            url = '---'
-                        try:
-                            codigo = int(linea.split('"')[2].split(' ')[1])
-                            if len(str(codigo)) != 3:
+                            try:
+                                url = linea.split('"')[1].split(' ')[1]
+                                if len(url) > 254:
+                                    url = url[:252]+'...'
+                            except Exception as ex:
+                                url = '---'
+                            try:
+                                codigo = int(linea.split('"')[2].split(' ')[1])
+                                if len(str(codigo)) != 3:
+                                    codigo = 0
+                            except Exception as ex:
                                 codigo = 0
-                        except Exception as ex:
-                            codigo = 0
-                        try:
-                            fecha = linea.split(' ')[3][1:]
-                            fecha = fecha_access_to_epoch(fecha)
-                        except Exception as ex:
-                            fecha = None
-                            print('Exception split Fecha:', ex)
-                        if ip_registrada(ip):
-                            session.add(Visita(ip=ip,
-                                               cod_html=codigo,
-                                               fecha=fecha,
-                                               metodo=metodo,
-                                               consulta=url,
-                                               registro=1))
-                        else:
-                            session.add(Visita(ip=ip,
-                                               cod_html=codigo,
-                                               fecha=fecha,
-                                               metodo=metodo,
-                                               consulta=url))
-            session.commit()
-            print(f'{ipl.co_Grn}Carga completa.. borrando log{ipl.co_rst}\n')
+                            try:
+                                fecha = linea.split(' ')[3][1:]
+                                fecha = fecha_access_to_epoch(fecha)
+                            except Exception as ex:
+                                fecha = None
+                                print('Exception split Fecha:', ex)
+                            if ip_registrada(ip):
+                                session.add(Visita(ip=ip,
+                                                   cod_html=codigo,
+                                                   fecha=fecha,
+                                                   metodo=metodo,
+                                                   consulta=url,
+                                                   registro=1))
+                            else:
+                                session.add(Visita(ip=ip,
+                                                   cod_html=codigo,
+                                                   fecha=fecha,
+                                                   metodo=metodo,
+                                                   consulta=url))
+                except Exception as ex:
+                    print('Exception: ', ex)
+            try:
+                with Progress() as prog, session:
+                    task1=prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
+                    session.commit()
+                    while not prog.finished:
+                        prog.update(task1, advance=0.1)
+                        time.sleep(0.05)
+            except Exception as ex:
+                print('Exception Progress: ', ex)
+            console.print('[bold green] - Carga completa.. borrando log[/bold green]\n')
             os.remove(log)
             return True
         except:
-            print(f'{ipl.co_Red}Error al intentar abrir/cargar: '+
-                  f'[{ipl.co_rst}{log}{ipl.co_Red}]\n')
+            console.print(f'[red]Error al intentar abrir/cargar: [{log}[/red]]\n')
             return False
     else:
-        print(f'{ipl.co_RedB}log: [{ipl.co_rst}{log}{ipl.co_RedB}]'+ 
-              f' inexistente.{ipl.co_rst}\n')
-    return False
+        console.print(f'[bold red]Log: [[/bold red]{log}[bold red]] inexistente.[/bold red]\n')
+        return False
 
 
 def carga_error_logs(log):
     if os.path.exists(log):
-        print(f'{ipl.co_Yel}Registrando [{log}]{ipl.co_rst}')
+        nombre_log = log.split('/')[-1]
+        console.print(f'[bold yellow]Registrando [[/bold yellow]{nombre_log}[bold yellow]][/bold yellow]')
         try:
+            #with Progress(), open(log, 'r') as lista:
             with open(log, 'r') as lista:
-                for linea in lista:
-                    linea = linea.split('\n')[0]
-                    if (linea.rfind('[notice]') > 0 or linea.rfind('[crit]') > 0):
-                        if linea.find('[crit]') > 0:
+                try:
+                    largo = subprocess.run(['wc', '-l', log], capture_output=True, text=True)
+                    largo = int(largo.stdout.split(' ')[0])
+                    for linea in track(lista, total=largo, description='[blue bold]Cargando [/blue bold]'):
+                        linea = linea.split('\n')[0]
+                        if (linea.rfind('[notice]') > 0 or linea.rfind('[crit]') > 0):
+                            if linea.find('[crit]') > 0:
+                                try:
+                                    ip = linea.split('client: ')[1].split(',')[0]
+                                except Exception as ex:
+                                    print('Exception Ip error_log: ', ex)
+                                    ip = None
+                                try:
+                                    fecha = ' '.join(linea.split(' ')[0:2])
+                                except Exception:
+                                    fecha = None
+                                try:
+                                    url = linea.split('"')[1].split(' ')[1]
+                                    if len(url) > 254:
+                                        url = url[:252]+'...'
+                                except Exception:
+                                    url = ' '.join(linea.split(' ')[5:])
+                                    #url = '---'
+                                try:
+                                    metodo = linea.split('"')[1].split(' ')[0]
+                                except Exception:
+                                    metodo = '---'
+                        else:
                             try:
                                 ip = linea.split('client: ')[1].split(',')[0]
                             except Exception as ex:
@@ -220,72 +264,67 @@ def carga_error_logs(log):
                             except Exception:
                                 fecha = None
                             try:
-                                url = linea.split('"')[1].split(' ')[1]
+                                metodo = linea.split('request: "')[1].split(' ')[0]
+                            except Exception:
+                                metodo = '---'
+                            try:
+                                url = linea.split('"')[1].split(' ')[0]
                                 if len(url) > 254:
                                     url = url[:252]+'...'
                             except Exception:
-                                url = ' '.join(linea.split(' ')[5:])
-                                #url = '---'
-                            try:
-                                metodo = linea.split('"')[1].split(' ')[0]
-                            except Exception:
-                                metodo = '---'
-                    else:
-                        try:
-                            ip = linea.split('client: ')[1].split(',')[0]
-                        except Exception as ex:
-                            print('Exception Ip error_log: ', ex)
-                            ip = None
-                        try:
-                            fecha = ' '.join(linea.split(' ')[0:2])
-                        except Exception:
-                            fecha = None
-                        try:
-                            metodo = linea.split('request: "')[1].split(' ')[0]
-                        except Exception:
-                            metodo = '---'
-                        try:
-                            url = linea.split('"')[1].split(' ')[0]
-                            if len(url) > 254:
-                                url = url[:252]+'...'
-                        except Exception:
-                            url = '---'
-                    if ipl.filtro_ip_propia(ip):
-                        fecha  = int(fecha_error_to_epoch(fecha))
-                        codigo = 0
-                        if ip_registrada(ip):
-                            session.add(Visita(ip=ip,
-                                               cod_html=codigo,
-                                               fecha=fecha,
-                                               consulta=url,
-                                               metodo=metodo,
-                                               registro=1))
-                        else:
-                            session.add(Visita(ip=ip,
-                                               cod_html=codigo,
-                                               fecha=fecha,
-                                               consulta=url,
-                                               metodo=metodo))
-            session.commit()
-            print(f'{ipl.co_Grn}Carga completa.. borrando log{ipl.co_rst}\n')
+                                url = '---'
+                        if filtro_ip_propia(ip):
+                            fecha  = int(fecha_error_to_epoch(fecha))
+                            codigo = 0
+                            if ip_registrada(ip):
+                                session.add(Visita(ip=ip,
+                                                   cod_html=codigo,
+                                                   fecha=fecha,
+                                                   consulta=url,
+                                                   metodo=metodo,
+                                                   registro=1))
+                            else:
+                                session.add(Visita(ip=ip,
+                                                   cod_html=codigo,
+                                                   fecha=fecha,
+                                                   consulta=url,
+                                                   metodo=metodo))
+                except Exception as ex:
+                    print('Exception: ', ex)
+            try:
+                with Progress() as prog, session:
+                    task1=prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
+                    session.commit()
+                    while not prog.finished:
+                        prog.update(task1, advance=0.1)
+                        time.sleep(0.05)
+            except Exception as ex:
+                print('Exception Progress: ', ex)
+            console.print(f'[bold green] - Carga completa.. borrando log[/bold green]\n')
             os.remove(log)
             return True
         except:
-            print(f'{ipl.co_Red}Error al intentar abrir/cargar: '+
-                  f'[{ipl.co_rst}{log}{ipl.co_Red}]\n')
+            console.print(f'[red]Error al intentar abrir/cargar: [{log}[/red]]\n')
             return False
     else:
-        print(f'{ipl.co_RedB}log: [{ipl.co_rst}{log}{ipl.co_RedB}]'+ 
-              f' inexistente.{ipl.co_rst}\n')
+        console.print(f'[bold red]Log: [[/bold red]{log}[bold red]] inexistente.[/bold red]\n')
         return False
 
 
 def carga_logs():
-    print(f'{ipl.co_Grn}Carga de logs en base de datos:{ipl.co_rst}\n')
-    carga_access_log(logs_dir+'/access.log')
-    carga_access_log(logs_dir+'/reverse-access.log')
-    carga_error_logs(logs_dir+'/error.log')
-    carga_error_logs(logs_dir+'/reverse-error.log')
+    #print(f'[bold green]Carga de logs en base de datos:[/bold green]\n')
+    logpath = logs_dir+'/access.log'
+    if os.path.exists(logpath):
+        carga_access_log(logpath)
+    logpath = logs_dir+'/reverse-access.log'
+    if os.path.exists(logpath):
+        carga_access_log(logpath)
+    logpath = logs_dir+'/error.log'
+    if os.path.exists(logpath):
+        carga_error_logs(logpath)
+    logpath = logs_dir+'/reverse-error.log'
+    if os.path.exists(logpath):
+        carga_error_logs(logpath)
 
 
 def carga_registro_ip(ip_info):
@@ -317,14 +356,32 @@ def carga_registro_ip(ip_info):
             session.commit()
         except Exception as ex:
             print('Exception: ', ex)
+        # aqui progress bar registro visita
     stmt = update(Visita).where(Visita.ip == ip_info['ip']).values(registro=1).\
     execution_options(synchronize_session="fetch")
     #result = session.execute(stmt)
     try:
         session.execute(stmt)
+        # aqui progress bar update visita (registro = 1)
         session.commit()
     except Exception as ex:
         print('Exception: ', ex)
+
+
+def consulta_ip(ip_consulta, tkn=True):
+    if (re.search(ip_regx, ip_consulta)):
+        match tkn:
+            case True:
+                consulta = f'https://ipinfo.io/{ip_consulta}{token}'
+                info_ip = requests.get(consulta).text
+                return loads(info_ip)
+            case False:    
+                consulta = f'https://ipinfo.io/{ip_consulta}'
+                info_ip = requests.get(consulta).text
+                return loads(info_ip)
+            case None:
+                resp = consulta_db(ip_consulta)
+                return  resp
 
 def consulta_db(ip):
     try:
@@ -335,25 +392,47 @@ def consulta_db(ip):
         print('Exception consulta_db:\n', ex)
 
 
-def test_db():
-    try:
-        session.add(Visita(ip='dummy_ip', cod_html=000, fecha=int(time.mktime(time.localtime()))))
-        session.commit()
-        session.add(Registro(ip ='dummy_ip'))
-        session.commit()
-    except Exception as ex:
-        print('Exception: ', ex)
-
 
 def registro_ips():
-    registrar = True
-    while registrar:
-        statement = select(Visita).filter_by(registro=0)
-        res = session.execute(statement).scalars().first()
-        if res is None:
-            print(f'{ipl.co_Grn}Registro ipinfo en DB finzalizado.{ipl.co_rst}')
-            registrar = False
-        #ip_actual= res.ip.split('\n')[0]
-        ip_actual= res.ip
-        ip_info = ipl.consulta_ip(ip_actual, True)
-        carga_registro_ip(ip_info)
+    statement = select(Visita).filter_by(registro=0)
+    with Progress() as progress:
+        total = len(session.execute(statement).scalars().all())
+        task1= progress.add_task("[bold blue]Cargando  [/bold blue]", total=total)
+        total_ant = total
+        while not progress.finished:
+            res = session.execute(statement).scalars().first()
+            total_act = len(session.execute(statement).scalars().all())
+            avance = total_ant - total_act
+            print('total update:',total,'total_act:', total_act,' Diferencia: ', avance )
+            total_ant = total_act
+            if res is None:
+                print('en res none')
+                progress.update (task1, advance=total)
+            ip_actual= res.ip
+            ip_info = consulta_ip(ip_actual, True)
+            carga_registro_ip(ip_info)
+            progress.update(task1, advance=avance)
+    console.print('\n[bold yellow]Registro en baso de datos finalizado.[/bold yellow]')
+
+
+#def registro_ips(): # OLD
+#    registrar = True
+#    statement = select(Visita).filter_by(registro=0)
+#    while registrar:
+#        res = session.execute(statement).scalars().first()
+#        if res is None:
+#            console.print('[bold yellow]Registro en baso de datos finalizado.[/bold yellow]')
+#            registrar = False
+#        ip_actual= res.ip
+#        ip_info = consulta_ip(ip_actual, True)
+#        carga_registro_ip(ip_info)
+
+
+#def test_db():
+#    try:
+#        session.add(Visita(ip='dummy_ip', cod_html=000, fecha=int(time.mktime(time.localtime()))))
+#        session.commit()
+#        session.add(Registro(ip ='dummy_ip'))
+#        session.commit()
+#    except Exception as ex:
+#        print('Exception: ', ex)

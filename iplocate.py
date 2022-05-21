@@ -7,9 +7,10 @@ import requests
 import re
 import configparser as cfg
 from os.path import isfile
-from json import loads
-from colorama import Fore, Back, Style
 import sql_alch
+from rich import box
+from rich.console import Console
+from rich.table import Table
 
 selfpath = os.path.abspath(os.path.dirname(__file__))
 ownip = requests.get('https://ifconfig.me/').text
@@ -18,35 +19,9 @@ parser.read(f'{selfpath}/config.cfg')
 token = parser.get('iplocate','token') 
 token = token.strip("'")
 muevelog = f'{selfpath}/muevelog.sh '
+console = Console()
 #tkn=True
 
-# Colores
-co_rst      = Style.RESET_ALL
-co_Blu      = Fore.BLUE+Style.NORMAL
-co_BluD     = Fore.BLUE+Style.DIM
-co_BluB     = Fore.BLUE+Style.BRIGHT
-co_Red      = Fore.RED+Style.NORMAL
-co_RedD     = Fore.RED+Style.DIM
-co_RedB     = Fore.RED+Style.BRIGHT
-co_Grn      = Fore.GREEN+Style.NORMAL
-co_GrnD     = Fore.GREEN+Style.DIM
-co_GrnB     = Fore.GREEN+Style.BRIGHT
-co_Yel      = Fore.YELLOW+Style.NORMAL
-co_YelD     = Fore.YELLOW+Style.DIM
-co_YelB     = Fore.YELLOW+Style.BRIGHT
-co_BluLWh   = Fore.BLUE+Back.LIGHTWHITE_EX+Style.NORMAL
-co_BluLWhB  = Fore.BLUE+Back.LIGHTWHITE_EX+Style.BRIGHT
-co_GrnMgnB  = Fore.GREEN+Back.MAGENTA+Style.BRIGHT
-co_RedBluD  = Fore.RED+Back.BLUE+Style.DIM
-co_LRedBleD = Fore.LIGHTRED_EX+Back.BLUE+Style.DIM
-co_BlkMgnB  = Fore.BLACK+Back.MAGENTA+Style.BRIGHT
-co_BlkMgn   = Fore.BLACK+Back.MAGENTA+Style.NORMAL
-co_LGrLBlk  = Fore.LIGHTGREEN_EX+Back.LIGHTBLACK_EX
-co_RdYl     = Fore.RED+Back.YELLOW+Style.NORMAL
-co_RdYlB    = Fore.RED+Back.YELLOW+Style.BRIGHT
-co_BlkLBlkD = Fore.BLACK+Back.LIGHTBLACK_EX+Style.DIM
-co_BluLBlkD = Fore.BLUE+Back.LIGHTBLACK_EX+Style.DIM
-co_cuBlu    = '\33[38;5;122m'
 # IP validate https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
@@ -54,97 +29,132 @@ def filtro_ip_propia(ip):
     return True if ip != ownip else False 
 
 
-def consulta_ip(ip_consulta, tkn=True):
-    if (re.search(ip_regx, ip_consulta)):
-        match tkn:
-            case True:
-                consulta = f'https://ipinfo.io/{ip_consulta}{token}'
-                info_ip = requests.get(consulta).text
-                return loads(info_ip)
-            case False:    
-                consulta = f'https://ipinfo.io/{ip_consulta}'
-                info_ip = requests.get(consulta).text
-                return loads(info_ip)
-            case None:
-                resp = sql_alch.consulta_db(ip_consulta)
-                #print('consulta_ip :', resp)
-                return  resp
-                # aqui va la consulta a base de datos
-
-
 def print_ipinfo(ip, tkn=True):
     if (re.search(ip_regx, ip)):
-        ip_info = consulta_ip(ip, tkn)
+        try:
+            ip_info = sql_alch.consulta_ip(ip, tkn)
+        except Exception as ex:
+            print(f'Exception sql_alch.consulta_ip({ip})\n',ex)
+            ip_info = None
         if isinstance(ip_info, dict):
-            for llave, valor in ip_info.items():
-                print(f'{co_YelB}{llave}\b\t{co_Blu}->{co_rst} {co_Grn}{valor}{co_rst}')
-            print(f'{co_RedB}------------------------------', end='')
-            print(f'--------------------------------{co_rst}')
+            #print('es dict')
+            print_tabla_ip(ip_info)
         elif isinstance(ip_info, list):
+            #print('es lista')
+            lista_visitas=[]
             contad=0
             for tupla in ip_info:
+                visita = []
                 if contad < 1: 
                     for ind, val in enumerate(tupla):
                         if ind == 0:
-                            print(f'{co_BluD} _____________________________'
-                                  f'________________________________{co_rst}')
+                            ip_dict = dict()
                             for dato in str(val).split(';'):
-                                print(f'{co_Blu}| {co_BluB}{dato.split("=")[0].ljust(12)}'
-                                      f'{co_Blu}| {co_rst}{dato.split("=")[1]}{co_rst}')
-                            print(f'{co_BluD} ________________________ __'
-                                  f'_________ __________ _____________{co_rst}')
-                            print(f'{co_Blu}|{co_YelB}      Fecha Visita      {co_rst}'
-                                  f'{co_Blu}|{co_YelB}Codigo html{co_Blu}|'
-                                  f'{co_YelB}  Metodo  {co_rst}'
-                                  f'{co_Blu}|{co_YelB}   Request {co_rst}')
-                            print(f'{co_Blu}|------------------------|--'
-                                  f'---------|----------|-------------{co_rst}')
+                                ip_dict[dato.split("=")[0]] = dato.split("=")[1]
+                            print_tabla_ip(ip_dict)
                         else:
-                            # aqui modificar para representar las nuevas columnas de tabla visita
-                            codig = str(val).split(',')[2].split('=')[1].center(11)
-                            fecha = str(val).split(',')[3].split('=')[1].ljust(24)
+                            visita.append(str(val).split(',')[3].split('=')[1]) #.ljust(24))
+                            visita.append(str(val).split(',')[2].split('=')[1]) #.center(11))
                             metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---'.center(10) if metodo == 'None' else metodo.center(10)
-                            request = str(val).split(',')[5].split('=')[1]
-                            request = request[:86]+'...' if len(request) > 90 else request
+                            metodo = '---' if metodo == 'None' else metodo #.center(10)
+                            visita.append(metodo)
+                            request = ''.join(str(val).split(',')[5].split('=')[1:])
+                            # configurar wrap en tabla
+                            #request = request[:86]+'...' if len(request) > 90 else request
                             request = '---' if request == 'None' else request
-                            #if len(request) > 90:
-                            #    request = request[:86]+'...'
-                            print(f'{co_Blu}|{co_Yel}{fecha}{co_rst}'
-                                  f'{co_Blu}|{co_GrnB}{codig}'
-                                  f'{co_Blu}|{co_Grn}{metodo}{co_rst}'
-                                  f'{co_Blu}|{co_Grn}{request}{co_rst}')
+                            visita.append(request)
                 else:
                     for ind, val in enumerate(tupla):
                         if ind > 0:
                             # aqui modificar para representar las nuevas columnas de tabla visita
-                            codig = str(val).split(',')[2].split('=')[1].center(11)
-                            fecha = str(val).split(',')[3].split('=')[1].ljust(24)
+                            visita.append(str(val).split(',')[3].split('=')[1]) #.ljust(24)
+                            visita.append(str(val).split(',')[2].split('=')[1]) #.center(11)
                             metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---'.center(10) if metodo == 'None' else metodo.center(10)
-                            request = str(val).split(',')[5].split('=')[1]
-                            request = request[:86]+'...' if len(request) > 90 else request
+                            metodo = '---' if metodo == 'None' else metodo #.center(10)
+                            visita.append(metodo)
+                            request = ''.join(str(val).split(',')[5].split('=')[1:])
+                            # configurar wrap en tabla
+                            #request = request[:86]+'...' if len(request) > 90 else request
                             request = '---' if request == 'None' else request
-                            print(f'{co_Blu}|{co_Yel}{fecha}{co_rst}'
-                                  f'{co_Blu}|{co_GrnB}{codig}'
-                                  f'{co_Blu}|{co_Grn}{metodo}{co_rst}'
-                                  f'{co_Blu}|{co_Grn}{request}{co_rst}')
-                contad+=1
-            print(f'{co_RedB}-------------------------------'
-                  f'-------------------------------{co_rst}')
+                            visita.append(request)
+                lista_visitas.append(visita)
+                contad+=1 
+            print_tabla_visita(lista_visitas)
         else:
-            print('otra wea: ', type(ip_info))
+            console.print(f'[red]Error type(ip_info) = [/red][magenta]{type(ip_info)}[/magenta][red]][/red]')
     else:
         ipr = ip.split('\n')[0]
-        print(f'{co_Red}[{co_BlkMgn}{ipr}{co_rst}{co_Red}] no es una IP válida!{co_rst}')
+        console.print(f'[red][[/red][magenta]{ipr}[/magenta][red]] no es una IP válida![/red]')
+
+
+def print_tabla_ip(ip_info):
+    # color dodger_blue2
+    tbl_ip = Table(box = box.ROUNDED, highlight=True, border_style="dim plum1")
+    tbl_ip.add_column("IP", justify="left", style="bold #005fff", no_wrap=True)
+    tbl_ip.add_column(f"{ip_info['ip']}", justify="left", style="#00ff5f")
+    try:
+        if 'host' in ip_info:
+            tbl_ip.add_row("HOSTNAME", ip_info['host'])
+        elif 'hostname' in ip_info:
+            tbl_ip.add_row("HOSTNAME", ip_info['hostname']) 
+        if 'anycast' in ip_info:
+            anycast = 'Si' if ip_info['anycast'] else 'No'
+            tbl_ip.add_row("ANYCAST", anycast)
+        if 'cuidad' in ip_info:
+            tbl_ip.add_row("CUIDAD", ip_info['cuidad'])
+        elif 'city' in ip_info:
+            tbl_ip.add_row("CUIDAD", ip_info['city'])
+        if 'region' in ip_info:
+            tbl_ip.add_row("REGION", ip_info['region'])
+        if 'pais' in ip_info:
+            tbl_ip.add_row("PAIS", ip_info['pais'])
+        elif 'country' in ip_info:
+            tbl_ip.add_row("PAIS", ip_info['country'])
+        if 'geoloc' in ip_info:
+            tbl_ip.add_row("GEOLOC", ip_info['geoloc'])
+        elif 'loc' in ip_info:
+            tbl_ip.add_row("GEOLOC", ip_info['loc'])
+        if 'organizacion' in ip_info:
+            tbl_ip.add_row("ORGANIZ.", ip_info['organizacion'])
+        elif 'org' in ip_info:
+            tbl_ip.add_row("ORGANIZ.", ip_info['org'])
+        if 'fecha_reg' in ip_info:
+            tbl_ip.add_row("FECHA REG", ip_info['fecha_reg'])
+        if 'tzone' in ip_info:
+            tbl_ip.add_row("TimeZone", ip_info['tzone'])
+        elif 'timezone' in ip_info:
+            tbl_ip.add_row("TimeZone", ip_info['timezone'])
+        if 'cod_post' in ip_info:
+            tbl_ip.add_row("COD POST", ip_info['cod_post'])
+        elif 'postal' in ip_info:
+            tbl_ip.add_row("COD POST", ip_info['postal'])
+    except Exception as ex:
+        print('Exception ipl.print_tabla_ip(): ', ex)
+    try:
+        console.print(tbl_ip)
+    except Exception as ex:
+        print('Exception print(tabla_ip): ', ex)
+
+def print_tabla_visita(lista_visitas):
+    # color dodger_blue2
+    #tbl_v = Table(title=f"[bold][yellow]Visitas registradas:[/yellow] [green]{lista_visitas[0]}[/bold][/green]",
+    tbl_v = Table(box = box.ROUNDED, show_lines = False,row_styles=["dim", ""], border_style="dark_orange3")
+    tbl_v.add_column("Fecha visita", justify="center", style="bright_yellow", no_wrap=True)
+    tbl_v.add_column("Codigo", justify="center", style="bold dodger_blue2")
+    tbl_v.add_column("Metodo", justify="center", style="bright_magenta")
+    tbl_v.add_column("Request", justify="left", style="#00ff5f", overflow='fold', no_wrap=False)
+    for item in lista_visitas:
+        tbl_v.add_row(item[0], item[1], item[2], item[3])
+
+    console.print(tbl_v)
 
 
 def archivo_ips(ips, tkn=True):
     with open(ips, 'r') as lista:
-        for linea in lista:
-            if '\n' in linea:
-                linea = linea.split('\n')[0]
-            print_ipinfo(linea, tkn)
+            for linea in lista:
+                if '\n' in linea:
+                    linea = linea.split('\n')[0]
+                print_ipinfo(linea, tkn)
     sys.exit(0)
 
 
@@ -153,41 +163,41 @@ def main():
         try: 
             match sys.argv[1]:
                 case '--sync':
-                    print(f'{co_YelB}Sincronizando logs del servidor(bash script){co_rst}')
+                    console.print('[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
                     subprocess.check_call(
                             muevelog+"%s" % "--start",
                             shell=True)
                 case '-c':
-                    print(f'{co_YelB}Cargando logs en base de datos{co_rst}')
+                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]')
                     sql_alch.carga_logs()
+                case '-g':
+                    console.print('[yellow]Registro de datos de ipinfo[/yellow]')
+                    sql_alch.registro_ips()
                 case '-d':
-                    print(f'{co_YelB}Consulta base de datos:{co_rst}')
+                    console.print('[bold yellow]Consulta a base de datos:[/bold yellow]')
                     ip = sys.argv[2]
                     print_ipinfo(ip, None)
                 case '-D':
-                    print(f'{co_YelB}Consulta por archivo en base de datos:{co_rst}')
+                    console.print('[bold yellow]Consulta por archivo a base de datos:[/bold yellow]')
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], None)
                     else:
-                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
-                              f'{co_rst}{co_Red}] no es válido''')
+                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
+                                       '[red]] no es válido![/red]')
                         sys.exit(0)
-                case '-g':
-                    print(f'{co_YelB}Registrando datos de ipinfo{co_rst}')
-                    sql_alch.registro_ips()
                 case '-f':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], False)
                     else:
-                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
-                              f'{co_rst}{co_Red}] no es válido''')
+                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
+                               '[red]] no es válido[/red]')
                         sys.exit(0)
                 case '-F':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2])
                     else:
-                        print(f'{co_Red}Archivo [{co_BlkMgn}{sys.argv[2]}'+
-                              f'{co_rst}{co_Red}] no es válido''')
+                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
+                               '[red]] no es válido[/red]')
                         sys.exit(0)
                 case '-h':
                     uso()
@@ -199,14 +209,16 @@ def main():
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
         except IndexError:
-            print(f'{co_Red} error sys.args! {co_rst}')
+            console.print('[red] error sys.args! [/red]')
         finally:
             sys.exit(0)
 
-    print(f'{co_Grn}Ingresa una {co_BluB}IP {co_Grn}o {co_BluB}s '+
-          f'{co_Grn}para salir:{co_rst}')
+    console.print("[green]Ingresa una[/green] [bold blue]IP [/bold blue]"
+                  "[green]o [/green][bold blue]s [/bold blue]"
+                  "[green]para salir:[/green]")
     while True:
-        ip = input(f'{co_BluB} -> {co_rst}')
+        console.print("[bold blue] -> [/bold blue]", end='')
+        ip = input()
         if ip in 'sq0SQnN':
             exit(0)
         print_ipinfo(ip)
@@ -214,30 +226,30 @@ def main():
 
 def uso():
     ayuda = f"""
-    {co_BluB}ipLocate{co_rst}
-        {co_cuBlu}Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
+    [bold blue]ipLocate[/bold blue]
+        [deep_sky_blue1]Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
         Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
         en base de datos.
-        Consultas y reportes según información en la base de datos.{co_rst}
+        Consultas y reportes según información en la base de datos.[/deep_sky_blue1]
 
-        {co_YelB}iploc -h               {co_Grn}- Muestra esta ayuda.{co_rst}
+        [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
+        
+    [bold blue]Uso para consultas:[/bold blue]
+        [bold yellow]iploc[/bold yellow] [blue]<IP>[/blue]            [green]- Consulta la información de <IP> disponible en ipinfo.io.[/green]
+        [bold yellow]iploc -t [/bold yellow][blue]<IP>[/blue]         [green]- Consulta la info. de <IP> usando 'token' de ipinfo.io,
+                                especificado en config.cfg.[/green]
+        [bold yellow]iploc -d [/bold yellow][blue]<IP>      [/blue]   [green]- Consulta la información de <IP> disponible en base de datos.[/green]
+        [bold yellow]iploc -f [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (ipinfo.io).[/green]
+        [bold yellow]iploc -F [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (token, ipinfo.io).[/green]
+        [bold yellow]iploc -D [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (base de datos).[/green]
 
-    {co_BluB}Uso para consultas:{co_rst}
-        {co_YelB}iploc {co_Blu}<IP>             {co_Grn}- Consulta la información de <IP> disponible en ipinfo.io.{co_rst}
-        {co_YelB}iploc -t {co_Blu}<IP>          {co_Grn}- Consulta la info. de <IP> usando 'token' de ipinfo.io,
-                                 especificado en config.cfg.{co_rst}
-        {co_YelB}iploc -d {co_Blu}<IP>          {co_Grn}- Consulta la información de <IP> disponible en base de datos.{co_rst}
-        {co_YelB}iploc -f {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (ipinfo.io).{co_rst}
-        {co_YelB}iploc -F {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (token, ipinfo.io).{co_rst}
-        {co_YelB}iploc -D {co_Blu}<archivo>     {co_Grn}- Consulta info. de las IPs en <archivo> (base de datos).{co_rst}
-
-    {co_BluB}Operaciones base de datos:{co_rst}
-        {co_YelB}iploc --sync           {co_Grn}- Sincroniza logs del servidor (bash script).{co_rst}
-        {co_YelB}iploc -c               {co_Grn}- Carga logs en base de datos.{co_rst}
-        {co_YelB}iploc -g               {co_Grn}- Guarda ipinfo de IPs sin registro en la BD.{co_rst}
+    [bold blue]Operaciones base de datos:[/bold blue]
+        [bold yellow]iploc --sync          [/bold yellow][green]- Sincroniza logs del servidor (bash script).[/green]
+        [bold yellow]iploc -c              [/bold yellow][green]- Carga logs en base de datos.[/green]
+        [bold yellow]iploc -g              [/bold yellow][green]- Guarda ipinfo de IPs sin registro en la BD.[/green]
 
     """
-    print(ayuda)
+    console.print(ayuda)
 
 if __name__ == "__main__":
     main()
