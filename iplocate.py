@@ -168,7 +168,7 @@ def main():
                             muevelog+"%s" % "--start",
                             shell=True)
                 case '-c':
-                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]')
+                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
                     sql_alch.carga_logs()
                 case '-g':
                     console.print('[yellow]Registro de datos de ipinfo[/yellow]')

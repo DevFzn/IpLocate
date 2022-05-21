@@ -146,7 +146,7 @@ def ip_registrada(ip):
 def carga_access_log(log):
     if os.path.exists(log):
         nombre_log = log.split('/')[-1]
-        console.print(f'[bold yellow]Registrando [[/bold yellow]{nombre_log}[bold yellow]][/bold yellow]')
+        console.print(f'[yellow]Registrando [[/yellow]{nombre_log}[yellow]][/yellow]')
         try:
             with open(log, 'r') as lista:
                 try:
@@ -208,7 +208,7 @@ def carga_access_log(log):
                         time.sleep(0.05)
             except Exception as ex:
                 print('Exception Progress: ', ex)
-            console.print('[bold green] - Carga completa.. borrando log[/bold green]\n')
+            console.print('[magenta] - Carga completa.. borrando log[/magenta]\n')
             os.remove(log)
             return True
         except:
@@ -222,7 +222,7 @@ def carga_access_log(log):
 def carga_error_logs(log):
     if os.path.exists(log):
         nombre_log = log.split('/')[-1]
-        console.print(f'[bold yellow]Registrando [[/bold yellow]{nombre_log}[bold yellow]][/bold yellow]')
+        console.print(f'[yellow]Registrando [[/yellow]{nombre_log}[yellow]][/yellow]')
         try:
             #with Progress(), open(log, 'r') as lista:
             with open(log, 'r') as lista:
@@ -300,7 +300,7 @@ def carga_error_logs(log):
                         time.sleep(0.05)
             except Exception as ex:
                 print('Exception Progress: ', ex)
-            console.print(f'[bold green] - Carga completa.. borrando log[/bold green]\n')
+            console.print(f'[magenta] - Carga completa.. borrando log[/magenta]\n')
             os.remove(log)
             return True
         except:
