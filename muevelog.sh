@@ -75,21 +75,24 @@ extrae_logs(){
 concat_log(){
     log_tipo="${1}"
     if [[ "$(ls $destino_log/$log_tipo.* 2>/dev/null)" ]]; then
-        printf '%b   - Concatenando log %s %b\n' "${GRn}" "${1}" "${RST}"
+        printf '%b   - Concatenando log %s %b' "${GRn}" "${1}" "${RST}"
         for file in $(\ls -v $destino_log/$log_tipo.*); do 
             cat $file >> $destino_log/$log_tipo
             rm -f $file
         done
+        printf '%b  ...OK!%b\n' "${GRn}" "${RST}"
     else
         Info 0 "No existen logs [${log_tipo}] para concatenar"
-    fi #2>/dev/null
+    fi
 }
 
 concatena_logs(){
-    concat_log access.log &&
-    concat_log error.log &&
-    concat_log reverse-access.log &&
-    concat_log reverse-error.log
+    log_tipos=(access.log error.log reverse-error.log reverse-access.log)
+    for tipo in ${log_tipos[@]}; do
+        if [[ "$(ls $destino_log/${tipo}.* 2>/dev/null)" ]]; then
+            concat_log ${tipo}    
+        fi
+    done
 }
 
 main(){

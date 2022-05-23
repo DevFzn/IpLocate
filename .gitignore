@@ -1,3 +1,4 @@
+sqlite_views/
 __pycache__/
 test/
 *.db
