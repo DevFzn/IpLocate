@@ -205,6 +205,8 @@ def main():
                 case '-t':
                     ip = sys.argv[2]
                     print_ipinfo(ip)
+                case '-M':
+                    sql_alch.mapsgen()
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
@@ -227,6 +229,7 @@ def main():
 def uso():
     ayuda = f"""
     [bold blue]ipLocate[/bold blue]
+
         [deep_sky_blue1]Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
         Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
         en base de datos.
@@ -247,6 +250,9 @@ def uso():
         [bold yellow]iploc --sync          [/bold yellow][green]- Sincroniza logs del servidor (bash script).[/green]
         [bold yellow]iploc -c              [/bold yellow][green]- Carga logs en base de datos.[/green]
         [bold yellow]iploc -g              [/bold yellow][green]- Guarda ipinfo de IPs sin registro en la BD.[/green]
+
+    [bold blue]Mapa de visitas:[/bold blue]
+        [bold yellow]iploc -M              [/bold yellow][green]- Genera mapa según registro de la BD (cod. 200 y otros).[/green]
 
     """
     console.print(ayuda)

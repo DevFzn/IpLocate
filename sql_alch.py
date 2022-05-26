@@ -9,10 +9,11 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Sequence, update
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import distinct, select
 from sqlalchemy.sql.schema import ForeignKey
 from rich.progress import Progress, track
 from rich.console import Console
+from mapsgen import maps_gen
 
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 logs_dir = parser.get('bash_script', 'destino_log')
@@ -224,7 +225,6 @@ def carga_error_logs(log):
         nombre_log = log.split('/')[-1]
         console.print(f'[yellow]Registrando [[/yellow]{nombre_log}[yellow]][/yellow]')
         try:
-            #with Progress(), open(log, 'r') as lista:
             with open(log, 'r') as lista:
                 try:
                     largo = subprocess.run(['wc', '-l', log], capture_output=True, text=True)
@@ -356,13 +356,11 @@ def carga_registro_ip(ip_info):
             session.commit()
         except Exception as ex:
             print('Exception: ', ex)
-        # aqui progress bar registro visita
     stmt = update(Visita).where(Visita.ip == ip_info['ip']).values(registro=1).\
     execution_options(synchronize_session="fetch")
     #result = session.execute(stmt)
     try:
         session.execute(stmt)
-        # aqui progress bar update visita (registro = 1)
         session.commit()
     except Exception as ex:
         print('Exception: ', ex)
@@ -414,3 +412,13 @@ def registro_ips():
                 progress.update(task1, advance=avance)
     console.print('\n[bold yellow]Registro en base de datos finalizado.[/bold yellow]')
 
+
+def mapsgen():
+    try:
+        stmn = session.query(Registro.geoloc.distinct()).join('visitas').where(Visita.cod_html==200)
+        loc_200 = session.execute(stmn).all()
+        stmn = session.query(Registro.geoloc.distinct()).join('visitas').where(Visita.cod_html!=200)
+        loc_300 = session.execute(stmn).all()
+        maps_gen(loc_200, loc_300) 
+    except Exception as ex:
+        print('Exception: ', ex)

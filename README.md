@@ -1,6 +1,5 @@
 + POR HACER:
   + Reportes: pais - codigo - fecha
-  + Generar Imagen: loc y codigo?
 
 # iplocate
 
@@ -64,6 +63,9 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
       iploc --sync          - Sincroniza logs del servidor (bash script).
       iploc -c              - Carga logs en base de datos.
       iploc -g              - Guarda ipinfo de IPs sin registro en la BD.
+
+  Mapa de visitas:
+      iploc -M              - Genera mapa según registro de la BD (cod. 200 y otros).
 ```
 
 **`iploc --sync`**  
@@ -76,6 +78,11 @@ Poblar tabla **visita** de la base de datos. Carga los registros en archivos de 
 **`iploc -g`**  
 Consulta a `ipinfo.io` por cada ip registrada en **visita** (una vez por ip).  
 Guarda los datos en tabla **registro**.
+
+**`iploc -M`**  
+Genera mapas según vistas registradas, visitas 'infructuosas' de color rojo. Directorio `maps/`.
+
+![img](./maps/map_thumb.svg)
 
 ### Otras opciones
 
