@@ -88,6 +88,23 @@ Genera mapas según vistas registradas, visitas 'infructuosas' de color rojo. Di
 
 **`iploc <IP>`**
   - Muestra la información sobre \<IP\> disponible en ipinfo.io.  
+  ```
+  $ iploc 1.1.1.1
+
+  ╭──────────┬──────────────────────────╮
+  │ IP       │ 1.1.1.1                  │
+  ├──────────┼──────────────────────────┤
+  │ HOSTNAME │ one.one.one.one          │
+  │ ANYCAST  │ Si                       │
+  │ CUIDAD   │ Los Angeles              │
+  │ REGION   │ California               │
+  │ PAIS     │ US                       │
+  │ GEOLOC   │ 34.0522,-118.2437        │
+  │ ORGANIZ. │ AS13335 Cloudflare, Inc. │
+  │ TimeZone │ America/Los_Angeles      │
+  │ COD POST │ 90076                    │
+  ╰──────────┴──────────────────────────╯
+  ```
 
 **`iploc -t <IP>`**
   - Muestra la información sobre \<IP\> disponible en ipinfo.io  
@@ -95,6 +112,39 @@ Genera mapas según vistas registradas, visitas 'infructuosas' de color rojo. Di
 
 **`iploc -d <IP>`**
   - Muestra toda la información disponible en BD acerca de \<IP\>  
+  ```
+  $ iploc -d 37.139.6.60
+
+  Consulta a base de datos:
+  ╭───────────┬───────────────────────────╮
+  │ IP        │ 37.139.6.60               │
+  ├───────────┼───────────────────────────┤
+  │ HOSTNAME  │ None                      │
+  │ ANYCAST   │ Si                        │
+  │ CUIDAD    │ Amsterdam                 │
+  │ REGION    │ North Holland             │
+  │ PAIS      │ NL                        │
+  │ GEOLOC    │ 52.3740,4.8897            │
+  │ ORGANIZ.  │ AS14061 DigitalOcean, LLC │
+  │ FECHA REG │ Tue May 24 00:25:20 2022  │
+  │ TimeZone  │ Europe/Amsterdam          │
+  │ COD POST  │ 1012                      │
+  ╰───────────┴───────────────────────────╯
+  ╭──────────────────────────┬────────┬────────┬─────────────────────────╮
+  │       Fecha visita       │ Codigo │ Metodo │ Request                 │
+  ├──────────────────────────┼────────┼────────┼─────────────────────────┤
+  │ Sun May 22 02:49:03 2022 │  301   │  HEAD  │ /                       │
+  │ Sun May 22 02:49:04 2022 │  200   │  HEAD  │ /                       │
+  │ Sun May 22 02:49:04 2022 │  301   │  GET   │ /wp-login.php           │
+  │ Sun May 22 02:49:05 2022 │  404   │  GET   │ /wp-login.php           │
+  │ Sun May 22 02:49:06 2022 │  301   │  GET   │ /wordpress/wp-login.php │
+  │ Sun May 22 02:49:07 2022 │  404   │  GET   │ /wordpress/wp-login.php │
+  │ Sun May 22 02:49:07 2022 │  301   │  GET   │ /blog/wp-login.php      │
+  │ Sun May 22 02:49:08 2022 │  404   │  GET   │ /blog/wp-login.php      │
+  │ Sun May 22 02:49:09 2022 │  301   │  GET   │ /wp/wp-login.php        │
+  │ Sun May 22 02:49:10 2022 │  404   │  GET   │ /wp/wp-login.php        │
+  ╰──────────────────────────┴────────┴────────┴─────────────────────────╯
+  ```
 
 **`iploc -f <archivo_IPs>`**
   - Muestra la información disponible en ipinfo.io para cada \<IP\>  
