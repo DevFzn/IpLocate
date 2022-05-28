@@ -1,9 +1,11 @@
-+ POR HACER:
-  + Reportes: pais - codigo - fecha
-
-# iplocate
-
 ## Gestión de logs *nginx* archivados
+
+Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.  
+
+Carga logs archivados de nginx en base de datos. Consulta con ipinfo.io y registra  
+en base de datos.
+
+Consultas y reportes según información en la base de datos.  
 
 Mueve archivos ***log.?.gz*** del servidor existentes en `/var/log/nginx` al directorio  
 de usuario "**ruta_base**" en el servidor especificado en `./config.cfg`. Utiliza el  
@@ -11,6 +13,7 @@ script `muevelogz.sh` (script en servidor).
 
 Mueve los archivos ***log.?.gz*** del directorio de usuario del servidor al directorio  
 local "**destino_log**" especificado en `./config.cfg`.  
+
 Descomprime archivos **`.gz`** y concatena los respectivos archivos de log.  
 Borra los archivos utilizados en concatenación. Script `./muevelog.sh`.  
 
@@ -38,8 +41,9 @@ token = '?token=1234567890abc'
 Crea base de datos ***SQLite3*** **`./ipinfo.db`** con tablas de **registro** y de **visitas**.  
 
 ## Uso
-`./iplocate.py -h`  
+
 ej. alias `alias iploc='~/ruta/script/iplocate.py'`  
+`iploc -h`  
 ```bash
   ipLocate
 
@@ -163,8 +167,8 @@ ej. formato `./archivo_IPs`.
 
 ### Sicronización manual
 
-No es necesario el uso manual de este script, ya que es llamado por `iploc --sync`.  
-Pero ya que existe por que no tener la opción de llamar manualmente a las funciones.  
+No es necesario el uso manual del script, ya que este es llamado por `iploc --sync`.  
+Pero ya que existe, es conveniente tener la opción de llamar manualmente a las funciones.  
 
 `./muevelog.sh -h`  
 ```
@@ -208,9 +212,11 @@ Correr `iploc -h` para crear base de datos.
 
 ```
 📂️ nginx_data/
+├── 📄️ __init__.py
 ├── 📄️ config.cfg
 ├── 📄️ ipinfo.db
 ├── 📄️ iplocate.py
+├── 📄️ mapsgen.py
 ├── 📄️ muevelog.sh
 ├── 📄️ muevelogz.sh
 ├── 📄️ README.md
