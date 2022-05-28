@@ -212,6 +212,7 @@ Correr `iploc -h` para crear base de datos.
 
 ```
 📂️ nginx_data/
+├── 📁️ maps
 ├── 📄️ __init__.py
 ├── 📄️ config.cfg
 ├── 📄️ ipinfo.db
