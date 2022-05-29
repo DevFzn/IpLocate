@@ -237,13 +237,15 @@ def uso():
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
         
-    [bold blue]Uso para consultas:[/bold blue]
+    [bold blue]Consultas ipinfo.io:[/bold blue]
         [bold yellow]iploc[/bold yellow] [blue]<IP>[/blue]            [green]- Consulta la información de <IP> disponible en ipinfo.io.[/green]
+        [bold yellow]iploc -f [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (ipinfo.io).[/green]
         [bold yellow]iploc -t [/bold yellow][blue]<IP>[/blue]         [green]- Consulta la info. de <IP> usando 'token' de ipinfo.io,
                                 especificado en config.cfg.[/green]
+        [bold yellow]iploc -F [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (token ipinfo.io).[/green]
+
+    [bold blue]Consultas base de datos:[/bold blue]
         [bold yellow]iploc -d [/bold yellow][blue]<IP>      [/blue]   [green]- Consulta la información de <IP> disponible en base de datos.[/green]
-        [bold yellow]iploc -f [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (ipinfo.io).[/green]
-        [bold yellow]iploc -F [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (token, ipinfo.io).[/green]
         [bold yellow]iploc -D [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (base de datos).[/green]
 
     [bold blue]Operaciones base de datos:[/bold blue]
@@ -253,7 +255,6 @@ def uso():
 
     [bold blue]Mapa de visitas:[/bold blue]
         [bold yellow]iploc -M              [/bold yellow][green]- Genera mapa según registro de la BD (cod. 200 y otros).[/green]
-
     """
     console.print(ayuda)
 

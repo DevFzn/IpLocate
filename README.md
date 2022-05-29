@@ -1,44 +1,25 @@
 ## Gestión de logs *nginx* archivados
 
-Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.  
+- Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.  
 
-Carga logs archivados de nginx en base de datos. Consulta con ipinfo.io y registra  
-en base de datos.
-
-Consultas y reportes según información en la base de datos.  
-
-Mueve archivos ***log.?.gz*** del servidor existentes en `/var/log/nginx` al directorio  
-de usuario "**ruta_base**" en el servidor especificado en `./config.cfg`. Utiliza el  
+- Mueve archivos ***log.?.gz*** del servidor existentes en `/var/log/nginx` al directorio  
+de usuario **"ruta_base"** en el servidor especificado en `./config.cfg`. Utiliza el  
 script `muevelogz.sh` (script en servidor).  
 
-Mueve los archivos ***log.?.gz*** del directorio de usuario del servidor al directorio  
-local "**destino_log**" especificado en `./config.cfg`.  
+- Mueve los archivos ***log.?.gz*** del directorio de usuario del servidor al directorio  
+local **"destino_log"** especificado en `./config.cfg`.  
 
-Descomprime archivos **`.gz`** y concatena los respectivos archivos de log.  
+- Descomprime archivos **`.gz`** y concatena los respectivos archivos de log.  
 Borra los archivos utilizados en concatenación. Script `./muevelog.sh`.  
 
-ej. archivo de configuración `./config.cfg`
-```cfg
-[bash_script]
-ruta_base=mi_server://home/server_user/nginx_log.old/
-destino_log=/home/server_logs/nginx_old
-server_name=mi_server
-server_script=//home/server_user/scripts/muevelogz.sh
+- Crea base de datos ***SQLite3*** **`./ipinfo.db`** con tablas de **registro** y de **visitas**.  
 
-[iplocate]
-token = '?token=1234567890abc'
-```
-- ***mi_server***: parte de *ruta_base*, nombre del host según configuración  
-  en `~/.ssh/config`.  
-- **ruta_base** : es la ruta en el servidor donde se mueven los logs  
-  archivados (.gz) desde `/var/log/nginx/` (termina en `/`).  
-- **destino_log** : ruta donde se guardan local y temporalmente los  
-  archivos *log.?.gz*.  
-- **server_name** : nombre del host según configuración en `~/.ssh/config`.  
-- **server_script** : ruta en el servidor, del script que mueve los *log.?.gz*.
+- Carga logs archivados de nginx en base de datos.  
 
+- Consulta con ipinfo.io y registra en base de datos.
 
-Crea base de datos ***SQLite3*** **`./ipinfo.db`** con tablas de **registro** y de **visitas**.  
+- Consultas y reportes según información en la base de datos.  
+
 
 ## Uso
 
@@ -54,13 +35,15 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
 
       iploc -h              - Muestra esta ayuda.
 
-  Uso para consultas:
+  Consultas ipinfo.io:
       iploc <IP>            - Consulta la información de <IP> disponible en ipinfo.io.
+      iploc -f <archivo>    - Consulta info. de las IPs en <archivo> (ipinfo.io).
       iploc -t <IP>         - Consulta la info. de <IP> usando 'token' de ipinfo.io,
                               especificado en config.cfg.
+      iploc -F <archivo>    - Consulta info. de las IPs en <archivo> (token ipinfo.io).
+
+  Consultas base de datos:
       iploc -d <IP>         - Consulta la información de <IP> disponible en base de datos.
-      iploc -f <archivo>    - Consulta info. de las IPs en <archivo> (ipinfo.io).
-      iploc -F <archivo>    - Consulta info. de las IPs en <archivo> (token, ipinfo.io).
       iploc -D <archivo>    - Consulta info. de las IPs en <archivo> (base de datos).
 
   Operaciones base de datos:
@@ -74,7 +57,7 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
 
 **`iploc --sync`**  
 Realiza el proceso de copia de archivos del servidor, extracción y concatenado.  
-Explicado con detalle mas arriba.  
+Explicado al comienzo de este documento.  
 
 **`iploc -c`**  
 Poblar tabla **visita** de la base de datos. Carga los registros en archivos de log en la tabla.  
@@ -84,7 +67,7 @@ Consulta a `ipinfo.io` por cada ip registrada en **visita** (una vez por ip).
 Guarda los datos en tabla **registro**.
 
 **`iploc -M`**  
-Genera mapas según vistas registradas, visitas 'infructuosas' de color rojo. Directorio `maps/`.
+Genera mapas según vistas registradas. Visitas *infructuosas* de color rojo. Directorio `maps/`.
 
 ![img](./maps/map_thumb.svg)
 
@@ -168,7 +151,7 @@ ej. formato `./archivo_IPs`.
 ### Sicronización manual
 
 No es necesario el uso manual del script, ya que este es llamado por `iploc --sync`.  
-Pero ya que existe, es conveniente tener la opción de llamar manualmente a las funciones.  
+Pero ya que existe, puede resultar conveniente tener la opción de llamar manualmente a las funciones.  
 
 `./muevelog.sh -h`  
 ```
@@ -203,10 +186,28 @@ Crear `alias iploc='~/nginx_data/iplocate.py'`.
 Modificar ruta **logdest** en `muevelogz.sh` y copiar en el servidor.  
 ```
 # logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
-logdest=</ruta/user/docs/logs/nginx_log.old>
+logdest=/home/server_user/nginx_log.old
 ```
-Crear archivo de configuración según ejemplo mostrado en la primera sección  
-de este documento.  
+Crear archivo de configuración **config.cfg**.   
+ej. archivo de configuración `./config.cfg`
+```cfg
+[bash_script]
+server_name=mi_server
+ruta_base=mi_server://home/server_user/nginx_log.old/
+server_script=//home/server_user/scripts/muevelogz.sh
+destino_log=/home/local_user/.cache/nginx_old
+
+[iplocate]
+token = '?token=1234567890abc'
+```
+- ***mi_server***: parte de *ruta_base*, nombre del host según configuración en `~/.ssh/config`.  
+- **ruta_base** : es la ruta en el servidor donde se mueven los logs archivados (.gz) desde  
+`/var/log/nginx/` (termina en `/`).  
+- **destino_log** : ruta donde se guardan local y temporalmente los archivos *log.?.gz*.  
+- **server_name** : nombre del host según configuración en `~/.ssh/config`.  
+- **server_script** : ruta en el servidor, del script que mueve los *log.?.gz*.
+
+
 
 Correr `iploc -h` para crear base de datos.  
 
@@ -224,7 +225,7 @@ Correr `iploc -h` para crear base de datos.
 └── 📄️ sql_alch.py
 ```
 
-Seguir los pasos explicados en  **Uso**.
+Seguir los pasos explicados en  [Uso](#uso).
 
 ### Dependencias
 <br>

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 # logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
-logdest=</ruta/user/docs/logs/nginx_log.old>
-serv_user="${USER}"
+logdest=/home/$USER/nginx_log.old
 
+serv_user="${USER}"
 logdir=/var/log/nginx
+
+mkdir $logdest 2>/dev/null
 
 mueve_loggz(){
     if [[ "$(ls $logdir/*.log.*.gz 2>/dev/null)" ]]; then
