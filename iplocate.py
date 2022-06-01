@@ -157,21 +157,31 @@ def archivo_ips(ips, tkn=True):
                 print_ipinfo(linea, tkn)
     sys.exit(0)
 
+def _sync():
+    console.print('[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
+    subprocess.check_call(muevelog+"%s" % "--start", shell=True)
+
+
 
 def main():
     if len(sys.argv) > 1:
         try: 
             match sys.argv[1]:
+                case '--all':
+                    _sync()
+                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
+                    sql_alch.carga_logs()
+                    console.print('[bold yellow]Registro de datos de ipinfo[/bold yellow]')
+                    sql_alch.registro_ips()
+                    console.print('[bold yellow]Generando mapa de visitas[/bold yellow]')
+                    sql_alch.mapsgen()
                 case '--sync':
-                    console.print('[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
-                    subprocess.check_call(
-                            muevelog+"%s" % "--start",
-                            shell=True)
+                    _sync()
                 case '-c':
                     console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
                     sql_alch.carga_logs()
                 case '-g':
-                    console.print('[yellow]Registro de datos de ipinfo[/yellow]')
+                    console.print('[bold yellow]Registro de datos de ipinfo[/bold yellow]')
                     sql_alch.registro_ips()
                 case '-d':
                     console.print('[bold yellow]Consulta a base de datos:[/bold yellow]')
@@ -206,6 +216,7 @@ def main():
                     ip = sys.argv[2]
                     print_ipinfo(ip)
                 case '-M':
+                    console.print('[bold yellow]Generando mapa de visitas[/bold yellow]')
                     sql_alch.mapsgen()
                 case _:
                     ip = sys.argv[1]
@@ -247,14 +258,13 @@ def uso():
     [bold blue]Consultas base de datos:[/bold blue]
         [bold yellow]iploc -d [/bold yellow][blue]<IP>      [/blue]   [green]- Consulta la información de <IP> disponible en base de datos.[/green]
         [bold yellow]iploc -D [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (base de datos).[/green]
+        [bold yellow]iploc -M              [/bold yellow][green]- Genera mapa según registro en BD (cod. 200 y otros).[/green]
 
     [bold blue]Operaciones base de datos:[/bold blue]
         [bold yellow]iploc --sync          [/bold yellow][green]- Sincroniza logs del servidor (bash script).[/green]
         [bold yellow]iploc -c              [/bold yellow][green]- Carga logs en base de datos.[/green]
         [bold yellow]iploc -g              [/bold yellow][green]- Guarda ipinfo de IPs sin registro en la BD.[/green]
-
-    [bold blue]Mapa de visitas:[/bold blue]
-        [bold yellow]iploc -M              [/bold yellow][green]- Genera mapa según registro de la BD (cod. 200 y otros).[/green]
+        [bold yellow]iploc --all           [/bold yellow][green]- Realizas las 3 operaciones de BD (--sync, -c y -g) y -M.[/green]
     """
     console.print(ayuda)
 

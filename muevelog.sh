@@ -108,7 +108,7 @@ main(){
     wait
     printf '%b - Concatenando archivos:%b\n' "${GRN}" "${RST}" && concatena_logs &&
     printf '%b   Archivos concatenados%b\n\n' "${BLu}" "${RST}" || Err 0 'Error al concatenar logs!'
-    printf '%bProceso terminado %b\n' "${BLU}" "${RST}"
+    #printf '%bProceso terminado %b\n' "${BLU}" "${RST}"
 }
 
 if [ -n "${1}" ]; then
