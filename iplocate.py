@@ -264,7 +264,7 @@ def uso():
         [bold yellow]iploc --sync          [/bold yellow][green]- Sincroniza logs del servidor (bash script).[/green]
         [bold yellow]iploc -c              [/bold yellow][green]- Carga logs en base de datos.[/green]
         [bold yellow]iploc -g              [/bold yellow][green]- Guarda ipinfo de IPs sin registro en la BD.[/green]
-        [bold yellow]iploc --all           [/bold yellow][green]- Realizas las 3 operaciones de BD (--sync, -c y -g) y -M.[/green]
+        [bold yellow]iploc --all           [/bold yellow][green]- Realiza las 3 operaciones para poblar BD (--sync, -c y -g) y -M.[/green]
     """
     console.print(ayuda)
 

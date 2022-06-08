@@ -45,14 +45,13 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
   Consultas base de datos:
       iploc -d <IP>         - Consulta la información de <IP> disponible en base de datos.
       iploc -D <archivo>    - Consulta info. de las IPs en <archivo> (base de datos).
+      iploc -M              - Genera mapa según registro de la BD (cod. 200 y otros).
 
   Operaciones base de datos:
       iploc --sync          - Sincroniza logs del servidor (bash script).
       iploc -c              - Carga logs en base de datos.
       iploc -g              - Guarda ipinfo de IPs sin registro en la BD.
-
-  Mapa de visitas:
-      iploc -M              - Genera mapa según registro de la BD (cod. 200 y otros).
+      iploc --all           - Realiza las 3 operaciones para poblar BD (--sync, -c y -g) y -M.
 ```
 
 **`iploc --sync`**  
