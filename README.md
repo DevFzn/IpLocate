@@ -68,6 +68,9 @@ Guarda los datos en tabla **registro**.
 **`iploc -M`**  
 Genera mapas según vistas registradas. Visitas *infructuosas* de color rojo. Directorio `maps/`.
 
+**`iploc --all`**  
+Realiza las operaciones para poblar base de datos `--sync`, `-c` y `-g`. Y genera mapas `-M`.
+
 ![img](./maps/map_thumb.svg)
 
 ### Otras opciones
@@ -242,6 +245,7 @@ Seguir los pasos explicados en  [Uso](#uso).
     - requests
     - SQLAlchemy 1.4.32
     - rich
+    - py-staticmaps
   - sqlitebrowser 3.35.5 (opc.)
   
 <br>  
