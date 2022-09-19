@@ -213,6 +213,9 @@ def main():
                 case '-h':
                     uso()
                     exit(0)
+                case '-hq':
+                    uso_consultas()
+                    exit(0)
                 case '-t':
                     ip = sys.argv[2]
                     print_ipinfo(ip)
@@ -229,7 +232,7 @@ def main():
                             querys.pt_top_paises(top)
                         case '--pais-desde':
                             pais = sys.argv[3]
-                            desde = sys.argv[4]
+                            desde = sql_alch.fecha_error_to_epoch(sys.argv[4]+' 00:00:00')
                             querys.pt_sel_pais_fecha(pais.upper(), desde)
                         case '--detalle-pais':
                             pais = sys.argv[3]
@@ -255,6 +258,20 @@ def main():
         print_ipinfo(ip)
 
 
+def uso_consultas():
+    ayuda = f"""
+    [bold blue]ipLocate[/bold blue]
+
+        [deep_sky_blue1]Reportes según consultas a base de datos.[/deep_sky_blue1]
+
+    [bold blue]Consultas a base de datos:[/bold blue]
+      [bold yellow]iploc -q -p[/bold yellow] [blue]<pais>[/blue]                   [green]- Conteo de respuestas html para <pais> (ejs. CL AR) <IP>[/green]
+      [bold yellow]iploc -q --top [/bold yellow][blue]<n>[/blue]                   [green]- Visitas top <n> paises[/green]
+      [bold yellow]iploc -q --detalle-pais[/bold yellow][blue] <pais>[/blue]       [green]- Muestra al detalle las visitas desde <pais>[/green]
+      [bold yellow]iploc -q --pais-desde[/bold yellow][blue] <pais> <fecha>[/blue] [green]- Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)[/green]
+    """
+    console.print(ayuda)
+
 def uso():
     ayuda = f"""
     [bold blue]ipLocate[/bold blue]
@@ -265,6 +282,7 @@ def uso():
         Consultas y reportes según información en la base de datos.[/deep_sky_blue1]
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
+        [bold yellow]iploc -hq[/bold yellow]             [green]- Ayuda sobre querys.[/green]
         
     [bold blue]Consultas ipinfo.io:[/bold blue]
         [bold yellow]iploc[/bold yellow] [blue]<IP>[/blue]            [green]- Consulta la información de <IP> disponible en ipinfo.io.[/green]

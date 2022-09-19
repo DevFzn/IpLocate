@@ -38,8 +38,6 @@ def pt_visita_pais_detalle(pais):
 
     console.print(tbl_v)
 
-        
-
 # Formato fecha -- Convertir fecha 'unixepoch' a 'localtime'
 def unix_to_local_date():
     consulta = """
@@ -48,7 +46,7 @@ def unix_to_local_date():
     c.execute(consulta)
     return c.fetchall()
 
-# Select cod 200 -- SELECT all from registro where ip=(SELECT ip from visita where cod_html=200);
+# Select geoloc by cod html -- SELECT all from registro where ip=(SELECT ip from visita where cod_html=200);
 def select_cod(codigo):
     consulta = f"""
     SELECT geoloc FROM registro WHERE ip IN 
