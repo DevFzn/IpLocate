@@ -11,6 +11,7 @@ import sql_alch
 from rich import box
 from rich.console import Console
 from rich.table import Table
+import consultas.querys_sqlite as querys
 
 selfpath = os.path.abspath(os.path.dirname(__file__))
 ownip = requests.get('https://ifconfig.me/').text
@@ -218,6 +219,23 @@ def main():
                 case '-M':
                     console.print('[bold yellow]Generando mapa de visitas[/bold yellow]')
                     sql_alch.mapsgen()
+                case '-q':
+                    match sys.argv[2]:
+                        case '-p':
+                            pais = sys.argv[3]
+                            querys.pt_html_cod_pais(pais.upper())
+                        case '--top':
+                            top = sys.argv[3]
+                            querys.pt_top_paises(top)
+                        case '--pais-desde':
+                            pais = sys.argv[3]
+                            desde = sys.argv[4]
+                            querys.pt_sel_pais_fecha(pais.upper(), desde)
+                        case '--detalle-pais':
+                            pais = sys.argv[3]
+                            querys.pt_visita_pais_detalle(pais.upper())
+                        case _:
+                                console.print(f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
