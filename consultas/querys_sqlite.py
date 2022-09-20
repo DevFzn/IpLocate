@@ -66,10 +66,12 @@ def sel_pais_desde(pais, unix_e):
     resp = c.fetchall()
     return resp
 
-def pt_sel_pais_fecha(pais, unix_e):
-    respuesta = sel_pais_desde(pais, unix_e)
+def pt_sel_pais_fecha(pais, fecha_ux, fecha_loc):
+    fecha = fecha_loc.split('/')
+    fecha = fecha[2] +'/'+ fecha[1] +'/'+ fecha[0]
+    respuesta = sel_pais_desde(pais, fecha_ux)
     tbl_v = Table(
-            title=f"[bold][blue]Visitas {pais}, desde {unix_e}[/blue][/bold]",
+            title=f"[bold][blue]Visitas {pais}, desde {fecha}[/blue][/bold]",
             box = box.ROUNDED,
             show_lines = False,
             row_styles=["dim", ""],

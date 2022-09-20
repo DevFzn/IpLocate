@@ -28,13 +28,14 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
 ```bash
   ipLocate
 
-      Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
-      Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
-      en base de datos.
+      Consulta en ipinfo.io (con o sin token) información sobre IP(s).
+      Carga logs de nginx en base de datos.
+      Consulta con ipinfo.io y registra en base de datos.
       Consultas y reportes según información en la base de datos.
 
       iploc -h              - Muestra esta ayuda.
-
+      iploc -hq             - Ayuda sobre querys.
+      
   Consultas ipinfo.io:
       iploc <IP>            - Consulta la información de <IP> disponible en ipinfo.io.
       iploc -f <archivo>    - Consulta info. de las IPs en <archivo> (ipinfo.io).
@@ -45,7 +46,7 @@ ej. alias `alias iploc='~/ruta/script/iplocate.py'`
   Consultas base de datos:
       iploc -d <IP>         - Consulta la información de <IP> disponible en base de datos.
       iploc -D <archivo>    - Consulta info. de las IPs en <archivo> (base de datos).
-      iploc -M              - Genera mapa según registro de la BD (cod. 200 y otros).
+      iploc -M              - Genera mapa según registro en BD (cod. 200 y otros).
 
   Operaciones base de datos:
       iploc --sync          - Sincroniza logs del servidor (bash script).
@@ -150,6 +151,90 @@ ej. formato `./archivo_IPs`.
 ...
 ```  
 
+### Reportes y consultas
+
+`iploc -hq`  
+```txt
+  ipLocate
+
+      Reportes según consultas a base de datos.
+
+  Consultas a base de datos:
+    iploc -q -p <pais>                   - Conteo de respuestas html para <pais> (ejs. CL AR)
+    iploc -q --top <n>                   - Visitas top <n> paises
+    iploc -q --detalle-pais <pais>       - Muestra al detalle las visitas desde <pais>
+    iploc -q --pais-desde <pais> <fecha> - Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)
+```
+
+**`iploc -q -p us`**
+
+```txt
+ Códigos html: US
+╭────────┬────────╮
+│ Código │ Conteo │
+├────────┼────────┤
+│  404   │ 4806   │
+│  200   │ 1772   │
+│  400   │ 1709   │
+│  403   │ 1381   │
+│   0    │ 1089   │
+│  301   │ 709    │
+│  300   │ 284    │
+│  405   │ 88     │
+│  302   │ 14     │
+│  303   │ 6      │
+│  499   │ 2      │
+│  444   │ 1      │
+╰────────┴────────╯
+```
+
+**`iploc -q --top 3`**
+
+```txt
+   Vistas Top 3
+╭──────┬─────────╮
+│ País │ Visitas │
+├──────┼─────────┤
+│  US  │ 2146    │
+│  CN  │ 515     │
+│  DE  │ 363     │
+╰──────┴─────────╯
+```
+
+**`iploc -q --detalle-pais il`**
+
+```txt
+                                  Detalle visitas pais: IL
+╭────────────┬────────────────┬─────────┬───────────┬──────────────────────────────────────╮
+│   Fecha    │ IP             │ Metodo  │ Respuesta │ Consulta                             │
+├────────────┼────────────────┼─────────┼───────────┼──────────────────────────────────────┤
+│ 2022-08-11 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-08-15 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-08-15 │ 87.239.255.117 │ GET     │ 400       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-08-22 │ 79.179.30.54   │ OPTIONS │ 405       │ /                                    │
+│ 2022-08-22 │ 79.179.30.54   │ POST    │ 405       │ /                                    │
+│ 2022-08-22 │ 79.179.30.54   │ GET     │ 404       │ /robots.txt                          │
+│ 2022-08-28 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-09-03 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
+╰────────────┴────────────────┴─────────┴───────────┴──────────────────────────────────────╯
+```
+
+**`iploc -q --pais-desde fr 2022/9/17`**
+
+```txt
+                       Visitas FR, desde 17/9/2022
+╭────────────┬────────────────┬────────┬───────────┬──────────────────────╮
+│   Fecha    │ IP             │ Metodo │ Respuesta │ Consulta             │
+├────────────┼────────────────┼────────┼───────────┼──────────────────────┤
+│ 2022-09-17 │ 185.49.20.77   │ GET    │ 444       │ /wp-login.php        │
+│ 2022-09-18 │ 94.23.133.43   │ GET    │ 444       │ //wallet/.git/config │
+│ 2022-09-18 │ 94.23.133.43   │ GET    │ 444       │ //admin/.git/config  │
+│ 2022-09-18 │ 94.23.133.43   │ GET    │ 444       │ //core/.git/config   │
+│ 2022-09-18 │ 94.23.133.43   │ GET    │ 444       │ //live/.git/config   │
+│ 2022-09-18 │ 212.83.186.254 │ HEAD   │ 444       │ /                    │
+╰────────────┴────────────────┴────────┴───────────┴──────────────────────╯
+```
+
 ### Sicronización manual
 
 No es necesario el uso manual del script, ya que este es llamado por `iploc --sync`.  
@@ -177,7 +262,7 @@ Pero ya que existe, puede resultar conveniente tener la opción de llamar manual
 ```
 
 `./muevelog.sh --start`:  
-Realiza todo el proceso **--sync**,  **--copia**, **--extraer** y **--concat**.  
+Realiza todo el proceso **--sync**,  **--copia**, **--extraer** y **--concat**.
 
 
 ### Implementación
@@ -215,7 +300,10 @@ Correr `iploc -h` para crear base de datos.
 
 ```
 📂️ nginx_data/
+├── 📁️ consultas/
+│   └──  querys_sqlite.py
 ├── 📁️ maps
+│   └── map_thumb.svg
 ├── 📄️ __init__.py
 ├── 📄️ config.cfg
 ├── 📄️ ipinfo.db
@@ -251,5 +339,3 @@ Seguir los pasos explicados en  [Uso](#uso).
 <br>  
   
 - *[Token](https://ipinfo.io/)*
-
-

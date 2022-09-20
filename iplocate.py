@@ -232,8 +232,9 @@ def main():
                             querys.pt_top_paises(top)
                         case '--pais-desde':
                             pais = sys.argv[3]
-                            desde = sql_alch.fecha_error_to_epoch(sys.argv[4]+' 00:00:00')
-                            querys.pt_sel_pais_fecha(pais.upper(), desde)
+                            fecha_local = sys.argv[4]
+                            fecha_unix = sql_alch.fecha_error_to_epoch(sys.argv[4]+' 00:00:00')
+                            querys.pt_sel_pais_fecha(pais.upper(), fecha_unix, fecha_local)
                         case '--detalle-pais':
                             pais = sys.argv[3]
                             querys.pt_visita_pais_detalle(pais.upper())
@@ -265,7 +266,7 @@ def uso_consultas():
         [deep_sky_blue1]Reportes según consultas a base de datos.[/deep_sky_blue1]
 
     [bold blue]Consultas a base de datos:[/bold blue]
-      [bold yellow]iploc -q -p[/bold yellow] [blue]<pais>[/blue]                   [green]- Conteo de respuestas html para <pais> (ejs. CL AR) <IP>[/green]
+      [bold yellow]iploc -q -p[/bold yellow] [blue]<pais>[/blue]                   [green]- Conteo de respuestas html para <pais> (ejs. CL AR)[/green]
       [bold yellow]iploc -q --top [/bold yellow][blue]<n>[/blue]                   [green]- Visitas top <n> paises[/green]
       [bold yellow]iploc -q --detalle-pais[/bold yellow][blue] <pais>[/blue]       [green]- Muestra al detalle las visitas desde <pais>[/green]
       [bold yellow]iploc -q --pais-desde[/bold yellow][blue] <pais> <fecha>[/blue] [green]- Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)[/green]
@@ -276,9 +277,9 @@ def uso():
     ayuda = f"""
     [bold blue]ipLocate[/bold blue]
 
-        [deep_sky_blue1]Consulta información sobre IP(s) disponibles en ipinfo.io con o sin token.
-        Carga logs de nginx en base de datos. Consulta con ipinfo.io y registra
-        en base de datos.
+        [deep_sky_blue1]Consulta en ipinfo.io (con o sin token) información sobre IP(s).
+        Carga logs de nginx en base de datos.
+        Consulta con ipinfo.io y registra en base de datos.
         Consultas y reportes según información en la base de datos.[/deep_sky_blue1]
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
