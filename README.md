@@ -191,13 +191,13 @@ ej. formato `./archivo_IPs`.
 **`iploc -q --top 3`**
 
 ```txt
-   Vistas Top 3
+   Vistas Top 3   
 ╭──────┬─────────╮
 │ País │ Visitas │
 ├──────┼─────────┤
-│  US  │ 2146    │
-│  CN  │ 515     │
-│  DE  │ 363     │
+│  US  │ 11861   │
+│  RU  │ 4727    │
+│  NL  │ 4405    │
 ╰──────┴─────────╯
 ```
 
@@ -235,7 +235,9 @@ ej. formato `./archivo_IPs`.
 ╰────────────┴────────────────┴────────┴───────────┴──────────────────────╯
 ```
 
-### Sicronización manual
+----
+
+## Sicronización manual
 
 No es necesario el uso manual del script, ya que este es llamado por `iploc --sync`.  
 Pero ya que existe, puede resultar conveniente tener la opción de llamar manualmente a las funciones.  
@@ -264,8 +266,9 @@ Pero ya que existe, puede resultar conveniente tener la opción de llamar manual
 `./muevelog.sh --start`:  
 Realiza todo el proceso **--sync**,  **--copia**, **--extraer** y **--concat**.
 
+----
 
-### Implementación
+## Implementación
 Clonar proyecto en directorio ej. `~/nginx_data`.  
 
 Crear `alias iploc='~/nginx_data/iplocate.py'`.  
@@ -301,9 +304,9 @@ Correr `iploc -h` para crear base de datos.
 ```
 📂️ nginx_data/
 ├── 📁️ consultas/
-│   └──  querys_sqlite.py
+│   └── 📄️ querys_sqlite.py
 ├── 📁️ maps
-│   └── map_thumb.svg
+│   └── 📄️ map_thumb.svg
 ├── 📄️ __init__.py
 ├── 📄️ config.cfg
 ├── 📄️ ipinfo.db

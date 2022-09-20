@@ -89,12 +89,13 @@ def pt_sel_pais_fecha(pais, fecha_ux, fecha_loc):
 # Top 50 paises
 def top_paises(top):
     consulta = f""" 
-    SELECT pais,
-            count(pais) AS Ocurrencias
-            FROM registro
-            GROUP BY pais
-            ORDER BY count(*) DESC
-            LIMIT {top};
+    SELECT registro.pais,
+        count(registro.pais) as Visitas
+        FROM visita, registro
+            WHERE visita.ip=registro.ip
+        GROUP BY pais
+        ORDER BY count(*) DESC
+        LIMIT {top};
     """
     c.execute(consulta)
     resp = c.fetchall()
