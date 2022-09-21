@@ -10,20 +10,30 @@ conn = sqlite3.connect(f'{selfpath}/../ipinfo.db')
 c = conn.cursor()
 
 # Detalle Visitas por pais
-def vistas_pais_detalle(pais):
-    pais = pais
-    consulta = f"""
-    SELECT DATE(fecha, 'unixepoch') AS fecha_local, ip, metodo, cod_html, consulta
-    FROM visita WHERE ip IN (SELECT `ip` FROM `registro` WHERE `pais` = '{pais}');
-    """
+def vistas_pais_detalle(pais, codigo=''):
+    if codigo == '':
+        consulta = f"""
+        SELECT DATE(fecha, 'unixepoch') AS fecha_local, ip, metodo, cod_html, consulta
+         FROM visita WHERE ip IN (SELECT `ip` FROM `registro` WHERE `pais` = '{pais}');
+        """
+    else:
+        consulta = f"""
+        SELECT DATE(fecha, 'unixepoch') AS fecha_local, ip, metodo, cod_html, consulta
+        FROM visita WHERE ip IN (SELECT `ip` FROM `registro` WHERE `pais` = '{pais}')
+        and cod_html = '{codigo}';
+        """
     c.execute(consulta)
     resp = c.fetchall()
     return resp
 
-def pt_visita_pais_detalle(pais):
-    respuesta = vistas_pais_detalle(pais)
+def pt_visita_pais_detalle(pais, codigo=''):
+    respuesta = vistas_pais_detalle(pais, codigo)
+    if codigo != '':
+        titulo = f"[bold][blue]Detalle visitas pais: [yellow]{pais}[blue] respuesta [/blue][yellow]{codigo}[/bold][yellow]"
+    else:
+        titulo = f"[bold][blue]Detalle visitas pais: [/blue][yellow]{pais}[/yellow][/bold]"
     tbl_v = Table(
-            title=f"[bold][blue]Detalle visitas pais: [/blue][yellow]{pais}[/yellow][/bold]",
+            title=titulo,
             box = box.ROUNDED,
             show_lines = False,
             row_styles=["dim", ""],

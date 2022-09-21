@@ -237,14 +237,21 @@ def main():
                             querys.pt_sel_pais_fecha(pais.upper(), fecha_unix, fecha_local)
                         case '--detalle-pais':
                             pais = sys.argv[3]
-                            querys.pt_visita_pais_detalle(pais.upper())
+                            if len(sys.argv) > 4:
+                                if sys.argv[4].isnumeric():
+                                    codigo = sys.argv[4]
+                                    querys.pt_visita_pais_detalle(pais.upper(), codigo)
+                                else:
+                                    console.print(f'[magenta]-q --detalle-pais <pais> [/magenta][red][bold]<CODIGO> inválido ({sys.argv[4]})[/bold][/red]')
+                            else:
+                                querys.pt_visita_pais_detalle(pais.upper())
                         case _:
                                 console.print(f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
-        except IndexError:
-            console.print('[red] error sys.args! [/red]')
+        except IndexError as ex:
+            console.print('[red] error sys.args! [/red]', ex)
         finally:
             sys.exit(0)
 
@@ -263,13 +270,16 @@ def uso_consultas():
     ayuda = f"""
     [bold blue]ipLocate[/bold blue]
 
-        [deep_sky_blue1]Reportes según consultas a base de datos.[/deep_sky_blue1]
+        [deep_sky_blue1]Reportes según consultas a base de datos.
 
-    [bold blue]Consultas a base de datos:[/bold blue]
-      [bold yellow]iploc -q -p[/bold yellow] [blue]<pais>[/blue]                   [green]- Conteo de respuestas html para <pais> (ejs. CL AR)[/green]
-      [bold yellow]iploc -q --top [/bold yellow][blue]<n>[/blue]                   [green]- Visitas top <n> paises[/green]
-      [bold yellow]iploc -q --detalle-pais[/bold yellow][blue] <pais>[/blue]       [green]- Muestra al detalle las visitas desde <pais>[/green]
-      [bold yellow]iploc -q --pais-desde[/bold yellow][blue] <pais> <fecha>[/blue] [green]- Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)[/green]
+        Uso: [deep_sky_blue1][bold][yellow]iploc -q[/yellow][blue] <consulta>[/bold][/blue]
+
+    [deep_sky_blue1]Consultas a base de datos:[deep_sky_blue1]
+    [bold yellow]-p[/bold yellow] [blue]<pais>[/blue]                           [green]- Conteo de respuestas html para <pais> (ejs. CL AR)[/green]
+    [bold yellow]--top [/bold yellow][blue]<n>[/blue]                           [green]- Visitas top <n> paises[/green]
+    [bold yellow]--pais-desde[/bold yellow][blue] <pais> <fecha>[/blue]         [green]- Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)[/green]
+    [bold yellow]--detalle-pais[/bold yellow][blue] <pais> opc(<cod>)[/blue]   [green] - Muestra al detalle las visitas desde <pais>,
+                                          filtro por codigo opcional.[/green]
     """
     console.print(ayuda)
 
@@ -279,7 +289,7 @@ def uso():
 
         [deep_sky_blue1]Consulta en ipinfo.io (con o sin token) información sobre IP(s).
         Carga logs de nginx en base de datos.
-        Consulta con ipinfo.io y registra en base de datos.
+        Consulta en ipinfo.io y registra en base de datos.
         Consultas y reportes según información en la base de datos.[/deep_sky_blue1]
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
