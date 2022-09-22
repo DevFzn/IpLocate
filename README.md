@@ -155,15 +155,18 @@ ej. formato `./archivo_IPs`.
 
 `iploc -hq`  
 ```txt
-  ipLocate
+    ipLocate
 
-      Reportes según consultas a base de datos.
+        Reportes según consultas a base de datos.
 
-  Consultas a base de datos:
-    iploc -q -p <pais>                   - Conteo de respuestas html para <pais> (ejs. CL AR)
-    iploc -q --top <n>                   - Visitas top <n> paises
-    iploc -q --detalle-pais <pais>       - Muestra al detalle las visitas desde <pais>
-    iploc -q --pais-desde <pais> <fecha> - Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)
+        Uso: iploc -q <consulta>
+
+    Consultas a base de datos:
+    -p <pais>                           - Conteo de respuestas html para <pais> (ejs. CL AR)
+    --top <n>                           - Visitas top <n> paises
+    --pais-desde <pais> <fecha>         - Detalle visitas <pais> desde <fecha> (ej. 2022/9/19)
+    --detalle-pais <pais> opc(<cod>)    - Muestra al detalle las visitas desde <pais>,
+                                          filtro por codigo opcional.
 ```
 
 **`iploc -q -p us`**
@@ -201,22 +204,19 @@ ej. formato `./archivo_IPs`.
 ╰──────┴─────────╯
 ```
 
-**`iploc -q --detalle-pais il`**
+**`iploc -q --detalle-pais il 404`**
 
 ```txt
-                                  Detalle visitas pais: IL
-╭────────────┬────────────────┬─────────┬───────────┬──────────────────────────────────────╮
-│   Fecha    │ IP             │ Metodo  │ Respuesta │ Consulta                             │
-├────────────┼────────────────┼─────────┼───────────┼──────────────────────────────────────┤
-│ 2022-08-11 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
-│ 2022-08-15 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
-│ 2022-08-15 │ 87.239.255.117 │ GET     │ 400       │ http://dyn.epicgifs.net/test6956.php │
-│ 2022-08-22 │ 79.179.30.54   │ OPTIONS │ 405       │ /                                    │
-│ 2022-08-22 │ 79.179.30.54   │ POST    │ 405       │ /                                    │
-│ 2022-08-22 │ 79.179.30.54   │ GET     │ 404       │ /robots.txt                          │
-│ 2022-08-28 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
-│ 2022-09-03 │ 87.239.255.117 │ GET     │ 404       │ http://dyn.epicgifs.net/test6956.php │
-╰────────────┴────────────────┴─────────┴───────────┴──────────────────────────────────────╯
+                          Detalle visitas pais: IL respuesta 404
+╭────────────┬────────────────┬────────┬───────────┬──────────────────────────────────────╮
+│   Fecha    │ IP             │ Metodo │ Respuesta │ Consulta                             │
+├────────────┼────────────────┼────────┼───────────┼──────────────────────────────────────┤
+│ 2022-08-11 │ 87.239.255.117 │ GET    │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-08-15 │ 87.239.255.117 │ GET    │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-08-22 │ 79.179.30.54   │ GET    │ 404       │ /robots.txt                          │
+│ 2022-08-28 │ 87.239.255.117 │ GET    │ 404       │ http://dyn.epicgifs.net/test6956.php │
+│ 2022-09-03 │ 87.239.255.117 │ GET    │ 404       │ http://dyn.epicgifs.net/test6956.php │
+╰────────────┴────────────────┴────────┴───────────┴──────────────────────────────────────╯
 ```
 
 **`iploc -q --pais-desde fr 2022/9/17`**
