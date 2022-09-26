@@ -103,7 +103,7 @@ main(){
     copia_logs && printf '%b   Copia completada%b\n' "${BLu}" "${RST}" || Err 0 'Error al copiar!'
     wait
     printf '%b - Descomprimiendo archivos gunzip%b\n' "${GRN}" "${RST}" &&
-    extrae_logs && printf '%b   Extración completada%b\n' "${BLu}" "${RST}" ||
+    extrae_logs && printf '%b   Extracción completada%b\n' "${BLu}" "${RST}" ||
     Err 0 'Error al descomprimir!'
     wait
     printf '%b - Concatenando archivos:%b\n' "${GRN}" "${RST}" && concatena_logs &&
