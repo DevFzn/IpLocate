@@ -342,3 +342,4 @@ Seguir los pasos explicados en  [Uso](#uso).
 <br>  
   
 - *[Token](https://ipinfo.io/)*
+- [icon](https://commons.m.wikimedia.org/wiki/File:Geolocalization-outlined-circular-button.svg)
