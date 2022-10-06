@@ -395,7 +395,7 @@ def registro_ips():
     statement = select(Visita).filter_by(registro=0)
     with Progress() as progress:
         total = len(session.execute(statement).scalars().all())
-        task1= progress.add_task("[bold blue]Cargando  [/bold blue]", total=total)
+        task1= progress.add_task("[bold blue]Cargando [/bold blue]", total=total)
         total_ant = total
         while not progress.finished:
             res = session.execute(statement).scalars().first()
