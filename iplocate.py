@@ -25,9 +25,10 @@ console = Console()
 
 # IP validate https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+ip_local_regx = "^192\.168\.0\.([0-9]|[0-9][0-9]|[0-9][0-9][0-9])$"
 
 def filtro_ip_propia(ip):
-    return True if ip != ownip else False 
+    return True if ip != ownip and not re.search(ip_local_regx, ip) else False 
 
 
 def print_ipinfo(ip, tkn=True):
