@@ -278,7 +278,7 @@ Modificar ruta **logdest** en `muevelogz.sh` y copiar en el servidor.
 # logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
 logdest=/home/server_user/nginx_log.old
 ```
-Crear archivo de configuración **config.cfg**.   
+Crear archivo de configuración **config.cfg**.  
 ej. archivo de configuración `./config.cfg`
 ```cfg
 [bash_script]
@@ -305,7 +305,9 @@ Correr `iploc -h` para crear base de datos.
 📂️ nginx_data/
 ├── 📁️ consultas/
 │   └── 📄️ querys_sqlite.py
-├── 📁️ maps
+├── 📁️ log/
+│   └── 📄️ iplocate.log
+├── 📁️ maps/
 │   └── 📄️ map_thumb.svg
 ├── 📄️ __init__.py
 ├── 📄️ config.cfg
@@ -318,7 +320,7 @@ Correr `iploc -h` para crear base de datos.
 └── 📄️ sql_alch.py
 ```
 
-Seguir los pasos explicados en  [Uso](#uso).
+Seguir los pasos explicados en [Uso](#uso).
 
 ### Dependencias
 <br>
