@@ -5,6 +5,7 @@ maps/map_200.svg
 maps/map_300.svg
 maps/map_all.svg
 test/
+log/
 *.db
 config.cfg
 TODO

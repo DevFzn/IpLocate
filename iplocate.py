@@ -12,6 +12,7 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 import consultas.querys_sqlite as querys
+import logging
 
 selfpath = os.path.abspath(os.path.dirname(__file__))
 ownip = requests.get('https://ifconfig.me/').text
@@ -20,12 +21,18 @@ parser.read(f'{selfpath}/config.cfg')
 token = parser.get('iplocate','token') 
 token = token.strip("'")
 muevelog = f'{selfpath}/muevelog.sh '
+log_file = f'{selfpath}/log/iplocate.log'
 console = Console()
 #tkn=True
-
 # IP validate https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 ip_local_regx = "^192\.168\.0\.([0-9]|[0-9][0-9]|[0-9][0-9][0-9])$"
+
+
+def log_usage(proceso, info):
+    usage_log = f"Proceso:[{proceso}] - Info: [{info}]"
+    logging.info(usage_log)
+
 
 def filtro_ip_propia(ip):
     return True if ip != ownip and not re.search(ip_local_regx, ip) else False 
@@ -39,10 +46,8 @@ def print_ipinfo(ip, tkn=True):
             print(f'Exception sql_alch.consulta_ip({ip})\n',ex)
             ip_info = None
         if isinstance(ip_info, dict):
-            #print('es dict')
             print_tabla_ip(ip_info)
         elif isinstance(ip_info, list):
-            #print('es lista')
             lista_visitas=[]
             contad=0
             for tupla in ip_info:
@@ -90,7 +95,6 @@ def print_ipinfo(ip, tkn=True):
 
 
 def print_tabla_ip(ip_info):
-    # color dodger_blue2
     tbl_ip = Table(box = box.ROUNDED, highlight=True, border_style="dim plum1")
     tbl_ip.add_column("IP", justify="left", style="bold #005fff", no_wrap=True)
     tbl_ip.add_column(f"{ip_info['ip']}", justify="left", style="#00ff5f")
@@ -138,8 +142,6 @@ def print_tabla_ip(ip_info):
         print('Exception print(tabla_ip): ', ex)
 
 def print_tabla_visita(lista_visitas):
-    # color dodger_blue2
-    #tbl_v = Table(title=f"[bold][yellow]Visitas registradas:[/yellow] [green]{lista_visitas[0]}[/bold][/green]",
     tbl_v = Table(box = box.ROUNDED, show_lines = False,row_styles=["dim", ""], border_style="dark_orange3")
     tbl_v.add_column("Fecha visita", justify="center", style="bright_yellow", no_wrap=True)
     tbl_v.add_column("Codigo", justify="center", style="bold dodger_blue2")
@@ -317,4 +319,10 @@ def uso():
     console.print(ayuda)
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename = log_file,
+        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level = logging.INFO
+        )
+    logging.info("iplocate inicio")
     main()
