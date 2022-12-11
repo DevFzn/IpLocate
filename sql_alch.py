@@ -25,6 +25,8 @@ Base = declarative_base()
 
 # Tabla registro ip info
 class Registro(Base):
+    """Definición de tabla 'Registro'"""
+
     __tablename__ = 'registro'
     ip           = Column(String, primary_key=True)
     hostname     = Column(String, nullable=True)
@@ -44,6 +46,7 @@ class Registro(Base):
                                 cascade="all, delete, delete-orphan")
 
     def get_fecha(self):
+        """Convierte fecha 'unix epoch' y devuelve en formato local"""
         return time.asctime(time.localtime(int(self.fecha_reg.__repr__())))
 
 
@@ -62,6 +65,8 @@ class Registro(Base):
 
 
 class Visita(Base):
+    """Definición de tabla 'Visita'"""
+
     __tablename__ = 'visita'
     id       = Column(Integer, Sequence('visita_id_seq'), primary_key=True)
     ip       = Column(String, ForeignKey('registro.ip'))
@@ -74,12 +79,14 @@ class Visita(Base):
     
 
     def get_fecha(self):
+        """Convierte fecha 'unix epoch' y devuelve en formato local"""
         return time.asctime(time.localtime(int(self.fecha.__repr__())))
 
     def consulta_registro(self):
         return True if self.registro == 1 else False
 
     def __repr__(self) -> str:
+        """Representación en cadena de texto del los datos en tabla"""
         try:
             rep = f'id={self.id},ip={self.ip},html={self.cod_html},'\
                   f'fecha={self.get_fecha()},metodo={self.metodo},request={self.consulta}'
@@ -105,7 +112,7 @@ fecha_access  = "10/May/2022:11:42:14 -0400".split(' ')[0]
 """
 
 def fecha_access_to_epoch(fecha):
-    """Convierte al fecha del formato entregado por access.log 
+    """Convierte la fecha del formato entregado por access.log
     y reverse_access.log(nginx) al formato unix epoch.
     
     :fecha: str Fecha
@@ -116,7 +123,7 @@ def fecha_access_to_epoch(fecha):
     return fecha_unix
 
 def fecha_error_to_epoch(fecha):
-    """Convierte al fecha del formato entregado por error.log 
+    """Convierte la fecha del formato entregado por error.log
     y reverse_error.log (nginx) al formato unix epoch.
     
     :fecha_local: str Fecha
@@ -136,6 +143,9 @@ def epoch_to_local(fecha):
 
 
 def ip_registrada(ip):
+    """Retorna respuesta a consulta valor de columna 'registro'
+    en tabla 'Visita' para ip pasada como argumento.
+    """
     try:
         ip_reg = session.query(Visita).filter(Visita.ip==ip).filter(Visita.registro==1).first()
     except Exception as ex:
@@ -145,6 +155,12 @@ def ip_registrada(ip):
 
 
 def carga_access_log(log):
+    """Procesa logs del tipo access, filtra IPs propias (publica y locales),
+    acorta los donde es necesario, convierte fechas a formato unix epoch,
+    los añade a session para tabla 'Visita'.
+    Finalmente realiza la transaccion utilizando clase Progres() del modulo rich.
+    Y borra el log procesado.
+    """
     if os.path.exists(log):
         nombre_log = log.split('/')[-1]
         console.print(f'[yellow]Procesando [[/yellow]{nombre_log}[yellow]][/yellow]')
@@ -221,6 +237,12 @@ def carga_access_log(log):
 
 
 def carga_error_logs(log):
+    """Procesa logs del tipo error, acorta los donde es necesario, convierte fechas
+    a formato unix epoch, filtra IPs propias (publica y locales), los añade a session
+    para tabla 'Visita'.
+    Finalmente realiza la transaccion utilizando clase 'Progress' del modulo rich.
+    Y borra el log procesado.
+    """
     if os.path.exists(log):
         nombre_log = log.split('/')[-1]
         console.print(f'[yellow]Procesando [[/yellow]{nombre_log}[yellow]][/yellow]')
@@ -237,7 +259,6 @@ def carga_error_logs(log):
                                 try:
                                     ip = linea.split('client: ')[1].split(',')[0]
                                 except Exception as ex:
-                                    #print('Exception Ip error_log: ', ex)
                                     log_usage('Exception Ip error_log {crit}', ex)
                                     ip = None
                                 try:
@@ -250,7 +271,6 @@ def carga_error_logs(log):
                                         url = url[:252]+'...'
                                 except Exception:
                                     url = ' '.join(linea.split(' ')[5:])
-                                    #url = '---'
                                 try:
                                     metodo = linea.split('"')[1].split(' ')[0]
                                 except Exception:
@@ -259,7 +279,6 @@ def carga_error_logs(log):
                             try:
                                 ip = linea.split('client: ')[1].split(',')[0]
                             except Exception as ex:
-                                #print('Exception Ip error_log: ', ex)
                                 log_usage('Exception Ip error_log {notice}', ex)
                                 ip = None
                             try:
@@ -310,7 +329,6 @@ def carga_error_logs(log):
                         prog.update(task1, advance=0.1)
                         time.sleep(0.05)
             except Exception as ex:
-                #print('Exception error.log - Progress session commit', ex)
                 log_usage('Exception error.log - Progress session commit', ex)
             console.print(f'[magenta] - Carga completa.. borrando log[/magenta]\n')
             os.remove(log)
@@ -326,6 +344,7 @@ def carga_error_logs(log):
 
 
 def carga_logs():
+    """Procesa logs existentes en directorio 'logs_dir', según nombre."""
     logpath = logs_dir+'/access.log'
     if os.path.exists(logpath):
         carga_access_log(logpath)
@@ -341,6 +360,10 @@ def carga_logs():
 
 
 def carga_registro_ip(ip_info):
+    """Guarda datos del diccionario ip_info en tabla 'Registro',
+    Actualiza columna 'registro' a '1' en la tabla 'Visita'
+    para IPs guardadas en 'Registro' en esta sessión.
+    """
     if not ip_registrada(ip_info['ip']):
         info_dic = {}
         info_dic['ip'] = ip_info['ip']
@@ -381,6 +404,9 @@ def carga_registro_ip(ip_info):
 
 
 def consulta_ip(ip_consulta, tkn=True):
+    """Consulta API o base de datos por la IPs pasada como argumento,
+    filtra IPs validas antes de proceder.
+    """
     if (re.search(ip_regx, ip_consulta)):
         match tkn:
             case True:
@@ -396,6 +422,10 @@ def consulta_ip(ip_consulta, tkn=True):
                 return  resp
 
 def consulta_db(ip):
+    """Consulta base de datos por la IPs pasada como argumento.
+    Entrega la información de Registro, seguida por todas las visitas
+    y sus detalles.
+    """
     try:
         statement = session.query(Registro, Visita).join('visitas').filter_by(ip=ip)
         result = session.execute(statement).all()
@@ -406,6 +436,10 @@ def consulta_db(ip):
 
 
 def registro_ips():
+    """Consulta API, obtiene datos de IPs en tabla 'Visita'
+    cuya valor en columna 'registro' sea '0'. Utiliza clase
+    Progress() para mostrar el progreso de la transacción.
+    """
     statement = select(Visita).filter_by(registro=0)
     with Progress() as progress:
         total = len(session.execute(statement).scalars().all())
@@ -428,6 +462,11 @@ def registro_ips():
 
 
 def mapsgen():
+    """Realiza 2 consultas de los datos de columna 'geoloc' de la tabla 'Registro',
+    según valor de columna 'cod_html' de la tabla 'Visita', para valores 200 y para
+    otros valores.
+    Llama a función maps_gen con estas listas de valores como argumentos.
+    """
     try:
         stmn = session.query(Registro.geoloc.distinct()).join('visitas').where(Visita.cod_html==200)
         loc_200 = session.execute(stmn).all()
