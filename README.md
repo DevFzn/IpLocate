@@ -342,6 +342,15 @@ Seguir los pasos explicados en [Uso](#uso).
   - sqlitebrowser 3.35.5 (opc.)
   
 <br>  
+
+### Iplocate en funcionamiento
+
+<a href="https://www.youtube.com/watch?v=TnJ_ObLRM9w" title="quick demo">
+  <img src="https://img.youtube.com/vi/TnJ_ObLRM9w/hqdefault.jpg" alt="demo" />
+</a>  
+
+<br>  
+<br>  
   
 - *[Token](https://ipinfo.io/)*
 - [icon](https://commons.m.wikimedia.org/wiki/File:Geolocalization-outlined-circular-button.svg)

@@ -4,6 +4,8 @@ maps/*.png
 maps/map_200.svg
 maps/map_300.svg
 maps/map_all.svg
+maps/map_all_dark.svg
+maps/map_all_dark.png
 test/
 log/
 *.db
