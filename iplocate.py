@@ -15,7 +15,6 @@ import consultas.querys_sqlite as querys
 import logging
 
 selfpath = os.path.abspath(os.path.dirname(__file__))
-ownip = requests.get('https://ifconfig.me/').text
 parser = cfg.ConfigParser()
 parser.read(f'{selfpath}/config.cfg')
 token = parser.get('iplocate','token') 
@@ -28,11 +27,25 @@ console = Console()
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 ip_local_regx = "^192\.168\.0\.([0-9]|[0-9][0-9]|[0-9][0-9][0-9])$"
 
+logging.basicConfig(
+    filename = log_file,
+    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level = logging.INFO
+    )
+logging.info("iplocate inicio")
 
 def log_usage(proceso, info):
     usage_log = f"Proceso:[{proceso}] - Info: [{info}]"
     logging.info(usage_log)
 
+def log_error(proceso, info):
+    error_log = f"Proceso: [{proceso}], Info:[{info}]"
+    logging.error(error_log)
+
+try:
+    ownip = requests.get('https://ifconfig.me/').text
+except Exception as ex:
+    log_error("Request ip pública", ex)
 
 def filtro_ip_propia(ip):
     return True if ip != ownip and not re.search(ip_local_regx, ip) else False 
@@ -296,7 +309,7 @@ def uso():
         Consultas y reportes según información en la base de datos.[/deep_sky_blue1]
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
-        [bold yellow]iploc -hq[/bold yellow]             [green]- Ayuda sobre querys.[/green]
+        [bold yellow]iploc -hq[/bold yellow]             [green]- Ayuda sobre queries.[/green]
         
     [bold blue]Consultas ipinfo.io:[/bold blue]
         [bold yellow]iploc[/bold yellow] [blue]<IP>[/blue]            [green]- Consulta la información de <IP> disponible en ipinfo.io.[/green]
@@ -319,10 +332,4 @@ def uso():
     console.print(ayuda)
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename = log_file,
-        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level = logging.INFO
-        )
-    logging.info("iplocate inicio")
     main()
