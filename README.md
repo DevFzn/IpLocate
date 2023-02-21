@@ -72,7 +72,7 @@ Genera mapas según vistas registradas. Visitas *infructuosas* de color rojo. Di
 **`iploc --all`**  
 Realiza las operaciones para poblar base de datos `--sync`, `-c` y `-g`. Y genera mapas `-M`.
 
-![img](./maps/map_thumb.svg)
+![img](./maps/map_thumb.png)
 
 ### Otras opciones
 
@@ -308,7 +308,7 @@ Correr `iploc -h` para crear base de datos.
 ├── 📁️ log/
 │   └── 📄️ iplocate.log
 ├── 📁️ maps/
-│   └── 📄️ map_thumb.svg
+│   └── 📄️ map_thumb.png
 ├── 📄️ __init__.py
 ├── 📄️ config.cfg
 ├── 📄️ ipinfo.db
