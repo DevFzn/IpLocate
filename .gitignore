@@ -1,4 +1,4 @@
-sqlite_views/
+devel/
 __pycache__/
 maps/*.svg
 maps/*.png
@@ -6,7 +6,6 @@ maps/map_200.png
 maps/map_300.png
 maps/map_all.png
 maps/map_all_dark.png
-test/
 log/
 *.db
 config.cfg
