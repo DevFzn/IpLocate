@@ -8,5 +8,5 @@ maps/map_all.png
 maps/map_all_dark.png
 log/
 *.db
-config.cfg
+config*.cfg
 TODO

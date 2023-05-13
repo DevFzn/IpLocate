@@ -474,4 +474,4 @@ def mapsgen():
         loc_300 = session.execute(stmn).all()
         maps_gen(loc_200, loc_300) 
     except Exception as ex:
-        print('Exception: ', ex)
+        print('Exception mapsgen: ', ex)
