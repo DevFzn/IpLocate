@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+from consultas.querys_sqlite import get_geoloc
 from iplocate import re, requests, token, filtro_ip_propia, selfpath, parser, log_usage
 from json import loads
 from datetime import datetime
@@ -468,10 +469,8 @@ def mapsgen():
     Llama a función maps_gen con estas listas de valores como argumentos.
     """
     try:
-        stmn = session.query(Registro.geoloc.distinct()).join('visitas').where(Visita.cod_html==200)
-        loc_200 = session.execute(stmn).all()
-        stmn = session.query(Registro.geoloc.distinct()).join('visitas').where(Visita.cod_html!=200)
-        loc_300 = session.execute(stmn).all()
+        loc_200 = get_geoloc(200)
+        loc_300 = get_geoloc(300)
         maps_gen(loc_200, loc_300) 
     except Exception as ex:
         print('Exception mapsgen: ', ex)

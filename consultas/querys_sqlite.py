@@ -9,6 +9,21 @@ console = Console()
 conn = sqlite3.connect(f'{selfpath}/../ipinfo.db')
 c = conn.cursor()
 
+# GeoLoc
+def get_geoloc(codigo):
+    if codigo == 200:
+        consulta = """
+            SELECT DISTINCT geoloc FROM registro WHERE ip in ( SELECT `ip` from visita WHERE cod_html=='200');
+                    """
+    else:
+        consulta = """
+            SELECT DISTINCT geoloc FROM registro WHERE ip in ( SELECT `ip` from visita WHERE cod_html!='200');
+                    """
+    c.execute(consulta)
+    resp = c.fetchall()
+    return resp
+
+
 # Detalle Visitas por pais
 def vistas_pais_detalle(pais, codigo=''):
     if codigo == '':

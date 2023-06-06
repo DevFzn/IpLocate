@@ -41,6 +41,7 @@ def map300(geolocs):
 
 
 def maps_gen(locs_200, locs_300):
+    maps_thumbs(locs_200, locs_300)
     map200(locs_200)
     map300(locs_300)
     for loc in locs_300:
@@ -73,7 +74,7 @@ def maps_thumbs(locs_200, locs_300):
         lon = float(loc[0].split(',')[1])
         demo300 = staticmaps.create_latlng(lat,lon)
         cntxtdemo.add_object(staticmaps.Marker(demo300, color=staticmaps.parse_color('#b20101'), size=4))
-    
+
     for loc in locs_200:
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
