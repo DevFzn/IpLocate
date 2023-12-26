@@ -17,38 +17,42 @@ import logging
 selfpath = os.path.abspath(os.path.dirname(__file__))
 parser = cfg.ConfigParser()
 parser.read(f'{selfpath}/config.cfg')
-token = parser.get('iplocate','token') 
+token = parser.get('iplocate', 'token')
 token = token.strip("'")
 muevelog = f'{selfpath}/muevelog.sh '
 log_file = f'{selfpath}/log/iplocate.log'
 console = Console()
-#tkn=True
-# IP validate https://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
+# tkn=True
+# stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
 ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 ip_local_regx = "^192\.168\.0\.([0-9]|[0-9][0-9]|[0-9][0-9][0-9])$"
 
 logging.basicConfig(
-    filename = log_file,
-    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level = logging.INFO
-    )
+        filename=log_file,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+)
 logging.info("iplocate inicio")
+
 
 def log_usage(proceso, info):
     usage_log = f"Proceso:[{proceso}] - Info: [{info}]"
     logging.info(usage_log)
 
+
 def log_error(proceso, info):
     error_log = f"Proceso: [{proceso}], Info:[{info}]"
     logging.error(error_log)
+
 
 try:
     ownip = requests.get('https://ifconfig.me/').text
 except Exception as ex:
     log_error("Request ip pública", ex)
 
+
 def filtro_ip_propia(ip):
-    return True if ip != ownip and not re.search(ip_local_regx, ip) else False 
+    return True if ip != ownip and not re.search(ip_local_regx, ip) else False
 
 
 def print_ipinfo(ip, tkn=True):
@@ -56,16 +60,16 @@ def print_ipinfo(ip, tkn=True):
         try:
             ip_info = sql_alch.consulta_ip(ip, tkn)
         except Exception as ex:
-            print(f'Exception sql_alch.consulta_ip({ip})\n',ex)
+            print(f'Exception sql_alch.consulta_ip({ip})\n', ex)
             ip_info = None
         if isinstance(ip_info, dict):
             print_tabla_ip(ip_info)
         elif isinstance(ip_info, list):
-            lista_visitas=[]
-            contad=0
+            lista_visitas = []
+            contad = 0
             for tupla in ip_info:
                 visita = []
-                if contad < 1: 
+                if contad < 1:
                     for ind, val in enumerate(tupla):
                         if ind == 0:
                             ip_dict = dict()
@@ -73,32 +77,32 @@ def print_ipinfo(ip, tkn=True):
                                 ip_dict[dato.split("=")[0]] = dato.split("=")[1]
                             print_tabla_ip(ip_dict)
                         else:
-                            visita.append(str(val).split(',')[3].split('=')[1]) #.ljust(24))
-                            visita.append(str(val).split(',')[2].split('=')[1]) #.center(11))
+                            visita.append(str(val).split(',')[3].split('=')[1])  # .ljust(24))
+                            visita.append(str(val).split(',')[2].split('=')[1])  # .center(11))
                             metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---' if metodo == 'None' else metodo #.center(10)
+                            metodo = '---' if metodo == 'None' else metodo  # .center(10)
                             visita.append(metodo)
                             request = ''.join(str(val).split(',')[5].split('=')[1:])
                             # configurar wrap en tabla
-                            #request = request[:86]+'...' if len(request) > 90 else request
+                            # request = request[:86]+'...' if len(request) > 90 else request
                             request = '---' if request == 'None' else request
                             visita.append(request)
                 else:
                     for ind, val in enumerate(tupla):
                         if ind > 0:
                             # aqui modificar para representar las nuevas columnas de tabla visita
-                            visita.append(str(val).split(',')[3].split('=')[1]) #.ljust(24)
-                            visita.append(str(val).split(',')[2].split('=')[1]) #.center(11)
+                            visita.append(str(val).split(',')[3].split('=')[1])  #.ljust(24)
+                            visita.append(str(val).split(',')[2].split('=')[1])  #.center(11)
                             metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---' if metodo == 'None' else metodo #.center(10)
+                            metodo = '---' if metodo == 'None' else metodo  #.center(10)
                             visita.append(metodo)
                             request = ''.join(str(val).split(',')[5].split('=')[1:])
                             # configurar wrap en tabla
-                            #request = request[:86]+'...' if len(request) > 90 else request
+                            # request = request[:86]+'...' if len(request) > 90 else request
                             request = '---' if request == 'None' else request
                             visita.append(request)
                 lista_visitas.append(visita)
-                contad+=1 
+                contad += 1 
             print_tabla_visita(lista_visitas)
         else:
             console.print(f'[red]Error type(ip_info) = [/red][magenta]{type(ip_info)}[/magenta][red]][/red]')
@@ -108,14 +112,14 @@ def print_ipinfo(ip, tkn=True):
 
 
 def print_tabla_ip(ip_info):
-    tbl_ip = Table(box = box.ROUNDED, highlight=True, border_style="dim plum1")
+    tbl_ip = Table(box=box.ROUNDED, highlight=True, border_style="dim plum1")
     tbl_ip.add_column("IP", justify="left", style="bold #005fff", no_wrap=True)
     tbl_ip.add_column(f"{ip_info['ip']}", justify="left", style="#00ff5f")
     try:
         if 'host' in ip_info:
             tbl_ip.add_row("HOSTNAME", ip_info['host'])
         elif 'hostname' in ip_info:
-            tbl_ip.add_row("HOSTNAME", ip_info['hostname']) 
+            tbl_ip.add_row("HOSTNAME", ip_info['hostname'])
         if 'anycast' in ip_info:
             anycast = 'Si' if ip_info['anycast'] else 'No'
             tbl_ip.add_row("ANYCAST", anycast)
@@ -154,8 +158,9 @@ def print_tabla_ip(ip_info):
     except Exception as ex:
         print('Exception print(tabla_ip): ', ex)
 
+
 def print_tabla_visita(lista_visitas):
-    tbl_v = Table(box = box.ROUNDED, show_lines = False,row_styles=["dim", ""], border_style="dark_orange3")
+    tbl_v = Table(box=box.ROUNDED, show_lines=False, row_styles=["dim", ""], border_style="dark_orange3")
     tbl_v.add_column("Fecha visita", justify="center", style="bright_yellow", no_wrap=True)
     tbl_v.add_column("Codigo", justify="center", style="bold dodger_blue2")
     tbl_v.add_column("Metodo", justify="center", style="bright_magenta")
@@ -168,21 +173,21 @@ def print_tabla_visita(lista_visitas):
 
 def archivo_ips(ips, tkn=True):
     with open(ips, 'r') as lista:
-            for linea in lista:
-                if '\n' in linea:
-                    linea = linea.split('\n')[0]
-                print_ipinfo(linea, tkn)
+        for linea in lista:
+            if '\n' in linea:
+                linea = linea.split('\n')[0]
+            print_ipinfo(linea, tkn)
     sys.exit(0)
+
 
 def _sync():
     console.print('[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
     subprocess.check_call(muevelog+"%s" % "--start", shell=True)
 
 
-
 def main():
     if len(sys.argv) > 1:
-        try: 
+        try:
             match sys.argv[1]:
                 case '--all':
                     _sync()
@@ -262,7 +267,7 @@ def main():
                             else:
                                 querys.pt_visita_pais_detalle(pais.upper())
                         case _:
-                                console.print(f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
+                            console.print(f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
@@ -299,6 +304,7 @@ def uso_consultas():
     """
     console.print(ayuda)
 
+
 def uso():
     ayuda = f"""
     [bold blue]ipLocate[/bold blue]
@@ -310,7 +316,7 @@ def uso():
 
         [bold yellow]iploc -h[/bold yellow]              [green]- Muestra esta ayuda.[/green]
         [bold yellow]iploc -hq[/bold yellow]             [green]- Ayuda sobre queries.[/green]
-        
+
     [bold blue]Consultas ipinfo.io:[/bold blue]
         [bold yellow]iploc[/bold yellow] [blue]<IP>[/blue]            [green]- Consulta la información de <IP> disponible en ipinfo.io.[/green]
         [bold yellow]iploc -f [/bold yellow][blue]<archivo> [/blue]   [green]- Consulta info. de las IPs en <archivo> (ipinfo.io).[/green]
@@ -330,6 +336,7 @@ def uso():
         [bold yellow]iploc --all           [/bold yellow][green]- Realiza las 3 operaciones para poblar BD (--sync, -c y -g) y -M.[/green]
     """
     console.print(ayuda)
+
 
 if __name__ == "__main__":
     main()

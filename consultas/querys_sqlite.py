@@ -9,6 +9,7 @@ console = Console()
 conn = sqlite3.connect(f'{selfpath}/../ipinfo.db')
 c = conn.cursor()
 
+
 # GeoLoc
 def get_geoloc(codigo):
     if codigo == 200:
@@ -41,6 +42,7 @@ def vistas_pais_detalle(pais, codigo=''):
     resp = c.fetchall()
     return resp
 
+
 def pt_visita_pais_detalle(pais, codigo=''):
     respuesta = vistas_pais_detalle(pais, codigo)
     if codigo != '':
@@ -49,8 +51,8 @@ def pt_visita_pais_detalle(pais, codigo=''):
         titulo = f"[bold][blue]Detalle visitas pais: [/blue][yellow]{pais}[/yellow][/bold]"
     tbl_v = Table(
             title=titulo,
-            box = box.ROUNDED,
-            show_lines = False,
+            box=box.ROUNDED,
+            show_lines=False,
             row_styles=["dim", ""],
             border_style="dark_magenta")
     tbl_v.add_column("Fecha", justify="center", style="bright_yellow")
@@ -63,6 +65,7 @@ def pt_visita_pais_detalle(pais, codigo=''):
 
     console.print(tbl_v)
 
+
 # Formato fecha -- Convertir fecha 'unixepoch' a 'localtime'
 def unix_to_local_date():
     consulta = """
@@ -71,15 +74,17 @@ def unix_to_local_date():
     c.execute(consulta)
     return c.fetchall()
 
+
 # Select geoloc by cod html -- SELECT all from registro where ip=(SELECT ip from visita where cod_html=200);
 def select_cod(codigo):
     consulta = f"""
-    SELECT geoloc FROM registro WHERE ip IN 
+    SELECT geoloc FROM registro WHERE ip IN
        (SELECT ip FROM visita WHERE cod_html = {codigo});
     """
     c.execute(consulta)
     resp = c.fetchall()
     return resp
+
 
 # Select fecha mayor que (ej. 1661226920)
 def sel_pais_desde(pais, unix_e):
@@ -91,14 +96,15 @@ def sel_pais_desde(pais, unix_e):
     resp = c.fetchall()
     return resp
 
+
 def pt_sel_pais_fecha(pais, fecha_ux, fecha_loc):
     fecha = fecha_loc.split('/')
-    fecha = fecha[2] +'/'+ fecha[1] +'/'+ fecha[0]
+    fecha = fecha[2] + '/' + fecha[1] + '/' + fecha[0]
     respuesta = sel_pais_desde(pais, fecha_ux)
     tbl_v = Table(
             title=f"[bold][blue]Visitas {pais}, desde {fecha}[/blue][/bold]",
-            box = box.ROUNDED,
-            show_lines = False,
+            box=box.ROUNDED,
+            show_lines=False,
             row_styles=["dim", ""],
             border_style="dark_magenta")
     tbl_v.add_column("Fecha", justify="center", style="bright_yellow")
@@ -111,9 +117,10 @@ def pt_sel_pais_fecha(pais, fecha_ux, fecha_loc):
 
     console.print(tbl_v)
 
+
 # Top 50 paises
 def top_paises(top):
-    consulta = f""" 
+    consulta = f"""
     SELECT registro.pais,
         count(registro.pais) as Visitas
         FROM visita, registro
@@ -131,8 +138,8 @@ def pt_top_paises(top):
     respuesta = top_paises(top)
     tbl_v = Table(
             title=f"[bold][blue]Vistas Top {top}[/blue][/bold]",
-            box = box.ROUNDED,
-            show_lines = False,
+            box=box.ROUNDED,
+            show_lines=False,
             row_styles=["dim", ""],
             border_style="dark_magenta")
     tbl_v.add_column("País", justify="center", style="bright_yellow")
@@ -142,13 +149,14 @@ def pt_top_paises(top):
 
     console.print(tbl_v)
 
+
 # respuesta HTML para pais=?
 def cod_html_pais(pais):
     consulta = f"""
     SELECT cod_html,
             count(cod_html) AS Ocurrencias
             FROM visita
-            WHERE ip IN (SELECT `ip` FROM `registro` WHERE `pais` = '{pais}') 
+            WHERE ip IN (SELECT `ip` FROM `registro` WHERE `pais` = '{pais}')
             GROUP BY cod_html
             ORDER BY count(*) DESC;
     """
@@ -161,8 +169,8 @@ def pt_html_cod_pais(pais):
     respuesta = cod_html_pais(pais)
     tbl_v = Table(
             title=f"[bold][blue]Códigos html: [/blue][green]{pais}[/bold][/green]",
-            box = box.ROUNDED,
-            show_lines = False,
+            box=box.ROUNDED,
+            show_lines=False,
             row_styles=["dim", ""],
             border_style="dark_magenta")
     tbl_v.add_column("Código", justify="center", style="bright_yellow")

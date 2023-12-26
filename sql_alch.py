@@ -24,6 +24,7 @@ base_de_datos = f'sqlite:////{selfpath}/ipinfo.db'
 console = Console()
 Base = declarative_base()
 
+
 # Tabla registro ip info
 class Registro(Base):
     """Definición de tabla 'Registro'"""
@@ -50,15 +51,14 @@ class Registro(Base):
         """Convierte fecha 'unix epoch' y devuelve en formato local"""
         return time.asctime(time.localtime(int(self.fecha_reg.__repr__())))
 
-
     def __repr__(self) -> str:
-        #print('en repr')
+        # print('en repr')
         try:
             rep = f'ip={self.ip};host={self.hostname};anycast={self.anycast};'+\
                   f'cuidad={self.cuidad};region={self.region};pais={self.pais};'+\
                   f'geoloc={self.geoloc};organizacion={self.organizacion};'+\
                   f'fecha_reg={self.get_fecha()};tzone={self.tzone};cod_post={self.cod_post}'
-            #print('Repr:', rep)
+            # print('Repr:', rep)
             return rep
         except Exception as ex:
             print('Exception :', ex)
@@ -67,7 +67,6 @@ class Registro(Base):
 
 class Visita(Base):
     """Definición de tabla 'Visita'"""
-
     __tablename__ = 'visita'
     id       = Column(Integer, Sequence('visita_id_seq'), primary_key=True)
     ip       = Column(String, ForeignKey('registro.ip'))
@@ -75,9 +74,8 @@ class Visita(Base):
     fecha    = Column(Integer)
     metodo   = Column(String, default='---')
     consulta = Column(String, default='---')
-    registro = Column(Integer, default=0) 
-    visita_ip  = relationship("Registro", back_populates="visitas")
-    
+    registro = Column(Integer, default=0)
+    visita_ip = relationship("Registro", back_populates="visitas")
 
     def get_fecha(self):
         """Convierte fecha 'unix epoch' y devuelve en formato local"""
@@ -99,7 +97,7 @@ class Visita(Base):
 
 engine = create_engine(base_de_datos)
 Base.metadata.create_all(engine)
-#Base.metadata.create_all(engine.execution_options(synchronize_session="fetch"))
+# Base.metadata.create_all(engine.execution_options(synchronize_session="fetch"))
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -112,10 +110,10 @@ fecha_error   = "2022/05/10 07:11:46"
 fecha_access  = "10/May/2022:11:42:14 -0400".split(' ')[0]
 """
 
+
 def fecha_access_to_epoch(fecha):
     """Convierte la fecha del formato entregado por access.log
     y reverse_access.log(nginx) al formato unix epoch.
-    
     :fecha: str Fecha
     :returns: int unix epoch fecha (secs)
     """
@@ -123,10 +121,10 @@ def fecha_access_to_epoch(fecha):
     fecha_unix = int(time.mktime(fecha.timetuple()))
     return fecha_unix
 
+
 def fecha_error_to_epoch(fecha):
     """Convierte la fecha del formato entregado por error.log
     y reverse_error.log (nginx) al formato unix epoch.
-    
     :fecha_local: str Fecha
     :returns: int unix epoch fecha (secs)
     """
@@ -134,9 +132,9 @@ def fecha_error_to_epoch(fecha):
     fecha_unix = int(time.mktime(fecha.timetuple()))
     return fecha_unix
 
+
 def epoch_to_local(fecha):
     """Convierte fecha unix epoch a localtime
-
     :fecha: int Fecha (secs)
     :returns: str Fecha
     """
@@ -148,7 +146,7 @@ def ip_registrada(ip):
     en tabla 'Visita' para ip pasada como argumento.
     """
     try:
-        ip_reg = session.query(Visita).filter(Visita.ip==ip).filter(Visita.registro==1).first()
+        ip_reg = session.query(Visita).filter(Visita.ip == ip).filter(Visita.registro == 1).first()
     except Exception as ex:
         print('Exception', ex)
         ip_reg = None
@@ -219,7 +217,7 @@ def carga_access_log(log):
                     print('Exception: ', ex)
             try:
                 with Progress() as prog, session:
-                    task1=prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
+                    task1 = prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
                     session.commit()
                     while not prog.finished:
                         prog.update(task1, advance=0.1)
@@ -296,9 +294,9 @@ def carga_error_logs(log):
                                     url = url[:252]+'...'
                             except Exception:
                                 url = '---'
-                        if ip != None:
+                        if ip is not None:
                             if filtro_ip_propia(ip):
-                                fecha  = int(fecha_error_to_epoch(fecha))
+                                fecha = int(fecha_error_to_epoch(fecha))
                                 codigo = 0
                                 if ip_registrada(ip):
                                     session.add(Visita(ip=ip,
@@ -324,7 +322,7 @@ def carga_error_logs(log):
                         pass
             try:
                 with Progress() as prog, session:
-                    task1=prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
+                    task1 = prog.add_task("[yellow bold]Guardando[/yellow bold]", total=len(session.new))
                     session.commit()
                     while not prog.finished:
                         prog.update(task1, advance=0.1)
@@ -368,7 +366,7 @@ def carga_registro_ip(ip_info):
     if not ip_registrada(ip_info['ip']):
         info_dic = {}
         info_dic['ip'] = ip_info['ip']
-        info_dic['hostname'] = ip_info['hostname']  if 'hostname' in ip_info else None
+        info_dic['hostname'] = ip_info['hostname'] if 'hostname' in ip_info else None
         info_dic['anycast'] = ip_info['anycast'] if 'anycast' in ip_info else None
         info_dic['ciudad'] = ip_info['city'] if 'city' in ip_info else None
         info_dic['region'] = ip_info['region'] if 'region' in ip_info else None
@@ -378,25 +376,25 @@ def carga_registro_ip(ip_info):
         info_dic['tzone'] = ip_info['timezone'] if 'timezone' in ip_info else None
         info_dic['cod_post'] = ip_info['postal'] if 'postal' in ip_info else None
         try:
-            session.add(Registro( ip = info_dic['ip'],
-                                  hostname = info_dic['hostname'],
-                                  anycast = info_dic['anycast'],
-                                  cuidad = info_dic['ciudad'],
-                                  region = info_dic['region'],
-                                  pais = info_dic['pais'],
-                                  geoloc = info_dic['geoloc'],
-                                  organizacion = info_dic['organizacion'],
-                                  fecha_reg = int(time.mktime(time.localtime())),
-                                  tzone = info_dic['tzone'],
-                                  cod_post = info_dic['cod_post'],
-                                  ))
+            session.add(Registro(ip=info_dic['ip'],
+                                 hostname=info_dic['hostname'],
+                                 anycast=info_dic['anycast'],
+                                 cuidad=info_dic['ciudad'],
+                                 region=info_dic['region'],
+                                 pais=info_dic['pais'],
+                                 geoloc=info_dic['geoloc'],
+                                 organizacion=info_dic['organizacion'],
+                                 fecha_reg=int(time.mktime(time.localtime())),
+                                 tzone=info_dic['tzone'],
+                                 cod_post=info_dic['cod_post'],
+                                 ))
             session.commit()
         except Exception as ex:
             print('[session.commit(ADD REGISTRO)] Exception: ', ex)
             print('Datos-Dic: ', info_dic)
     stmt = update(Visita).where(Visita.ip == ip_info['ip']).values(registro=1).\
-    execution_options(synchronize_session="fetch")
-    #result = session.execute(stmt)
+        execution_options(synchronize_session="fetch")
+    # result = session.execute(stmt)
     try:
         session.execute(stmt)
         session.commit()
@@ -414,13 +412,14 @@ def consulta_ip(ip_consulta, tkn=True):
                 consulta = f'https://ipinfo.io/{ip_consulta}{token}'
                 info_ip = requests.get(consulta).text
                 return loads(info_ip)
-            case False:    
+            case False:
                 consulta = f'https://ipinfo.io/{ip_consulta}'
                 info_ip = requests.get(consulta).text
                 return loads(info_ip)
             case None:
                 resp = consulta_db(ip_consulta)
-                return  resp
+                return resp
+
 
 def consulta_db(ip):
     """Consulta base de datos por la IPs pasada como argumento.
@@ -435,7 +434,6 @@ def consulta_db(ip):
         print('Exception consulta_db:\n', ex)
 
 
-
 def registro_ips():
     """Consulta API, obtiene datos de IPs en tabla 'Visita'
     cuya valor en columna 'registro' sea '0'. Utiliza clase
@@ -444,18 +442,18 @@ def registro_ips():
     statement = select(Visita).filter_by(registro=0)
     with Progress() as progress:
         total = len(session.execute(statement).scalars().all())
-        task1= progress.add_task("[bold blue]Cargando [/bold blue]", total=total)
+        task1 = progress.add_task("[bold blue]Cargando [/bold blue]", total=total)
         total_ant = total
         while not progress.finished:
             res = session.execute(statement).scalars().first()
             total_act = len(session.execute(statement).scalars().all())
             avance = total_ant - total_act
-            #print('total update:',total,'total_act:', total_act,' Diferencia: ', avance )
+            # print('total update:',total,'total_act:', total_act,' Diferencia: ', avance )
             total_ant = total_act
             if res is None:
-                progress.update (task1, advance=avance)
+                progress.update(task1, advance=avance)
             else:
-                ip_actual= res.ip
+                ip_actual = res.ip
                 ip_info = consulta_ip(ip_actual, True)
                 carga_registro_ip(ip_info)
                 progress.update(task1, advance=avance)
@@ -471,6 +469,6 @@ def mapsgen():
     try:
         loc_200 = get_geoloc(200)
         loc_300 = get_geoloc(300)
-        maps_gen(loc_200, loc_300) 
+        maps_gen(loc_200, loc_300)
     except Exception as ex:
         print('Exception mapsgen: ', ex)
