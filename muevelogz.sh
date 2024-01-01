@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-# logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
-logdest=/home/$USER/nginx_log.old
+# Permitir al usuario correr este script como super nombre_usuario
+# agregandolo al archivo sudoers
 
-serv_user="${USER}"
+serv_user=<nombre_usuario>
+# logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
+logdest=/home/$serv_user/nginx_log.old
 logdir=/var/log/nginx
 
 mkdir $logdest 2>/dev/null
@@ -11,8 +13,8 @@ mkdir $logdest 2>/dev/null
 mueve_loggz(){
     if [[ "$(ls $logdir/*.log.*.gz 2>/dev/null)" ]]; then
         printf 'Moviendo logs.gz de %s/\n' "${logdir}"
-        sudo mv $logdir/*.log.*.gz $logdest
-        sudo chown $serv_user:$serv_user $logdest/*
+        mv $logdir/*.log.*.gz $logdest
+        chown $serv_user:$serv_user $logdest/*
     else
         printf 'No hay logs archivados para mover\n'
         exit 1

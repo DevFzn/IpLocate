@@ -49,7 +49,7 @@ EOF
 
 sync_logs(){
     printf '%b   - Sincronizando con %s%b\n' "${GRn}" "${server_name}" "${RST}"
-    ssh -M -t $server_name $server_script || Info 1 'No hay logs.gz en este momento'
+    ssh -M -t $server_name sudo $server_script || Info 1 'No hay logs.gz en este momento'
 }
 
 copia_logs(){
