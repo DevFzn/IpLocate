@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-# Permitir al usuario correr este script como super nombre_usuario
-# agregandolo al archivo sudoers
+# Permitir al usuario correr este script como super
+# usuario sin solicitar contraseña, agregandolo al
+# archivo sudoers
 
 serv_user=<nombre_usuario>
 # logdest debe ser la misma ruta especificada en config.cfg como *ruta_base*
