@@ -4,7 +4,6 @@ import os
 import sys
 import subprocess
 import requests
-import re
 import configparser as cfg
 from os.path import isfile
 import sql_alch
@@ -23,9 +22,6 @@ muevelog = f'{selfpath}/muevelog.sh '
 log_file = f'{selfpath}/log/iplocate.log'
 console = Console()
 # tkn=True
-# stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python
-ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
-ip_local_regx = "^192\.168\.0\.([0-9]|[0-9][0-9]|[0-9][0-9][0-9])$"
 
 logging.basicConfig(
         filename=log_file,
@@ -33,6 +29,25 @@ logging.basicConfig(
         level=logging.INFO
 )
 logging.info("iplocate inicio")
+
+
+def valid_ip(ip_str):
+    ip = ip_str.split('.')
+    if len(ip) != 4:
+        return False
+    else:
+        for segm in ip:
+            if not segm.isdigit() or not (255 >= int(segm) >= 0):
+                return False
+    return True
+
+
+def local_ip(ip_str):
+    ip = ip_str.split('.')
+    if ip[0] == '192' and ip[1] == '168':
+        return True
+    else:
+        return False
 
 
 def log_usage(proceso, info):
@@ -52,11 +67,11 @@ except Exception as ex:
 
 
 def filtro_ip_propia(ip):
-    return True if ip != ownip and not re.search(ip_local_regx, ip) else False
+    return True if ip != ownip and not local_ip(ip) else False
 
 
 def print_ipinfo(ip, tkn=True):
-    if (re.search(ip_regx, ip)):
+    if valid_ip(ip):
         try:
             ip_info = sql_alch.consulta_ip(ip, tkn)
         except Exception as ex:

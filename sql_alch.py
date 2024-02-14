@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 from consultas.querys_sqlite import get_geoloc
-from iplocate import re, requests, token, filtro_ip_propia, selfpath, parser, log_usage
+from iplocate import requests, token, filtro_ip_propia, selfpath, parser, log_usage, valid_ip
 from json import loads
 from datetime import datetime
 from sqlalchemy import create_engine
@@ -16,7 +16,6 @@ from rich.progress import Progress, track
 from rich.console import Console
 from mapsgen import maps_gen
 
-ip_regx = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 logs_dir = parser.get('bash_script', 'destino_log')
 logs_dir = logs_dir.strip("'")
 base_de_datos = f'sqlite:////{selfpath}/ipinfo.db'
@@ -406,7 +405,7 @@ def consulta_ip(ip_consulta, tkn=True):
     """Consulta API o base de datos por la IPs pasada como argumento,
     filtra IPs validas antes de proceder.
     """
-    if (re.search(ip_regx, ip_consulta)):
+    if valid_ip(ip_consulta):
         match tkn:
             case True:
                 consulta = f'https://ipinfo.io/{ip_consulta}{token}'
