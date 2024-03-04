@@ -127,7 +127,7 @@ def print_ipinfo(ip, tkn=True):
         ipr = ip.split('\n')[0]
         console.print(
             f'[red][[/red][magenta]{ipr}[/magenta][red]]'
-            'no es una IP válida![/red]'
+            ' no es una IP válida![/red]'
         )
 
 
@@ -205,8 +205,18 @@ def archivo_ips(ips, tkn=True):
 
 def _sync():
     console.print(
-        '[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
+        '[bold yellow]Sincronizando logs del servidor'
+        '(bash script)[/bold yellow]'
+    )
     subprocess.check_call(muevelog+"%s" % "--start", shell=True)
+
+
+def archivo_invalido(archivo):
+    console.print(
+        f'[red]Archivo [[/red][magenta]{archivo}'
+        '[/magenta][red]] no es válido[/red]'
+    )
+    sys.exit(0)
 
 
 def main():
@@ -216,10 +226,14 @@ def main():
                 case '--all':
                     _sync()
                     console.print(
-                        '[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
+                        '[bold yellow]Cargando logs en base de datos'
+                        '[/bold yellow]\n'
+                    )
                     sql_alch.carga_logs()
                     console.print(
-                        '[bold yellow]Registro de datos de ipinfo[/bold yellow]')
+                        '[bold yellow]Registro de datos de ipinfo'
+                        '[/bold yellow]'
+                    )
                     sql_alch.registro_ips()
                     console.print(
                         '[bold yellow]Generando mapa de visitas[/bold yellow]')
@@ -228,11 +242,15 @@ def main():
                     _sync()
                 case '-c':
                     console.print(
-                        '[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
+                        '[bold yellow]Cargando logs en base de datos'
+                        '[/bold yellow]\n'
+                    )
                     sql_alch.carga_logs()
                 case '-g':
                     console.print(
-                        '[bold yellow]Registro de datos de ipinfo[/bold yellow]')
+                        '[bold yellow]Registro de datos de ipinfo'
+                        '[/bold yellow]'
+                    )
                     sql_alch.registro_ips()
                 case '-d':
                     console.print(
@@ -241,27 +259,23 @@ def main():
                     print_ipinfo(ip, None)
                 case '-D':
                     console.print(
-                        '[bold yellow]Consulta por archivo a base de datos:[/bold yellow]')
+                        '[bold yellow]Consulta por archivo a base de datos:'
+                        '[/bold yellow]'
+                    )
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], None)
                     else:
-                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                                      '[red]] no es válido![/red]')
-                        sys.exit(0)
+                        archivo_invalido(sys.argv[2])
                 case '-f':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], False)
                     else:
-                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                                      '[red]] no es válido[/red]')
-                        sys.exit(0)
+                        archivo_invalido(sys.argv[2])
                 case '-F':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2])
                     else:
-                        console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                                      '[red]] no es válido[/red]')
-                        sys.exit(0)
+                        archivo_invalido(sys.argv[2])
                 case '-h':
                     uso()
                     exit(0)
@@ -299,12 +313,18 @@ def main():
                                         pais.upper(), codigo)
                                 else:
                                     console.print(
-                                        f'[magenta]-q --detalle-pais <pais> [/magenta][red][bold]<CODIGO> inválido ({sys.argv[4]})[/bold][/red]')
+                                        '[magenta]-q --detalle-pais <pais> '
+                                        '[/magenta][red][bold]<CODIGO> '
+                                        f'inválido ({sys.argv[4]})'
+                                        '[/bold][/red]'
+                                    )
                             else:
                                 querys.pt_visita_pais_detalle(pais.upper())
                         case _:
                             console.print(
-                                f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
+                                '[red] query desconocida [bold]'
+                                f'{sys.argv[2]}[/bold][/red]'
+                            )
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
