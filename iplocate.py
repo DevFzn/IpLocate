@@ -24,9 +24,9 @@ console = Console()
 # tkn=True
 
 logging.basicConfig(
-        filename=log_file,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.INFO
+    filename=log_file,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
 logging.info("iplocate inicio")
 
@@ -70,6 +70,43 @@ def filtro_ip_propia(ip):
     return True if ip != ownip and not local_ip(ip) else False
 
 
+def visita_como_lista(ip_info):
+    lista_visitas = []
+    contad = 0
+    for tupla in ip_info:
+        visita = []
+        if contad < 1:
+            for ind, val in enumerate(tupla):
+                if ind == 0:
+                    ip_dict = dict()
+                    for dato in str(val).split(';'):
+                        ip_dict[dato.split("=")[0]] = dato.split("=")[1]
+                    print_tabla_ip(ip_dict)
+                else:
+                    visita.append(str(val).split(',')[3].split('=')[1])
+                    visita.append(str(val).split(',')[2].split('=')[1])
+                    metodo = (str(val).split(',')[4].split('=')[1])
+                    metodo = '---' if metodo == 'None' else metodo
+                    visita.append(metodo)
+                    request = ''.join(str(val).split(',')[5].split('=')[1:])
+                    request = '---' if request == 'None' else request
+                    visita.append(request)
+        else:
+            for ind, val in enumerate(tupla):
+                if ind > 0:
+                    visita.append(str(val).split(',')[3].split('=')[1])
+                    visita.append(str(val).split(',')[2].split('=')[1])
+                    metodo = (str(val).split(',')[4].split('=')[1])
+                    metodo = '---' if metodo == 'None' else metodo
+                    visita.append(metodo)
+                    request = ''.join(str(val).split(',')[5].split('=')[1:])
+                    request = '---' if request == 'None' else request
+                    visita.append(request)
+        lista_visitas.append(visita)
+        contad += 1
+    return lista_visitas
+
+
 def print_ipinfo(ip, tkn=True):
     if valid_ip(ip):
         try:
@@ -80,50 +117,18 @@ def print_ipinfo(ip, tkn=True):
         if isinstance(ip_info, dict):
             print_tabla_ip(ip_info)
         elif isinstance(ip_info, list):
-            lista_visitas = []
-            contad = 0
-            for tupla in ip_info:
-                visita = []
-                if contad < 1:
-                    for ind, val in enumerate(tupla):
-                        if ind == 0:
-                            ip_dict = dict()
-                            for dato in str(val).split(';'):
-                                ip_dict[dato.split("=")[0]] = dato.split("=")[1]
-                            print_tabla_ip(ip_dict)
-                        else:
-                            visita.append(str(val).split(',')[3].split('=')[1])  # .ljust(24))
-                            visita.append(str(val).split(',')[2].split('=')[1])  # .center(11))
-                            metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---' if metodo == 'None' else metodo  # .center(10)
-                            visita.append(metodo)
-                            request = ''.join(str(val).split(',')[5].split('=')[1:])
-                            # configurar wrap en tabla
-                            # request = request[:86]+'...' if len(request) > 90 else request
-                            request = '---' if request == 'None' else request
-                            visita.append(request)
-                else:
-                    for ind, val in enumerate(tupla):
-                        if ind > 0:
-                            # aqui modificar para representar las nuevas columnas de tabla visita
-                            visita.append(str(val).split(',')[3].split('=')[1])  #.ljust(24)
-                            visita.append(str(val).split(',')[2].split('=')[1])  #.center(11)
-                            metodo = (str(val).split(',')[4].split('=')[1])
-                            metodo = '---' if metodo == 'None' else metodo  #.center(10)
-                            visita.append(metodo)
-                            request = ''.join(str(val).split(',')[5].split('=')[1:])
-                            # configurar wrap en tabla
-                            # request = request[:86]+'...' if len(request) > 90 else request
-                            request = '---' if request == 'None' else request
-                            visita.append(request)
-                lista_visitas.append(visita)
-                contad += 1 
-            print_tabla_visita(lista_visitas)
+            print_tabla_visita(visita_como_lista(ip_info))
         else:
-            console.print(f'[red]Error type(ip_info) = [/red][magenta]{type(ip_info)}[/magenta][red]][/red]')
+            console.print(
+                '[red]Error type(ip_info) = [/red][magenta]'
+                f'{type(ip_info)}[/magenta][red]][/red]'
+            )
     else:
         ipr = ip.split('\n')[0]
-        console.print(f'[red][[/red][magenta]{ipr}[/magenta][red]] no es una IP válida![/red]')
+        console.print(
+            f'[red][[/red][magenta]{ipr}[/magenta][red]]'
+            'no es una IP válida![/red]'
+        )
 
 
 def print_tabla_ip(ip_info):
@@ -175,11 +180,14 @@ def print_tabla_ip(ip_info):
 
 
 def print_tabla_visita(lista_visitas):
-    tbl_v = Table(box=box.ROUNDED, show_lines=False, row_styles=["dim", ""], border_style="dark_orange3")
-    tbl_v.add_column("Fecha visita", justify="center", style="bright_yellow", no_wrap=True)
+    tbl_v = Table(box=box.ROUNDED, show_lines=False, row_styles=[
+                  "dim", ""], border_style="dark_orange3")
+    tbl_v.add_column("Fecha visita", justify="center",
+                     style="bright_yellow", no_wrap=True)
     tbl_v.add_column("Codigo", justify="center", style="bold dodger_blue2")
     tbl_v.add_column("Metodo", justify="center", style="bright_magenta")
-    tbl_v.add_column("Request", justify="left", style="#00ff5f", overflow='fold', no_wrap=False)
+    tbl_v.add_column("Request", justify="left", style="#00ff5f",
+                     overflow='fold', no_wrap=False)
     for item in lista_visitas:
         tbl_v.add_row(item[0], item[1], item[2], item[3])
 
@@ -196,7 +204,8 @@ def archivo_ips(ips, tkn=True):
 
 
 def _sync():
-    console.print('[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
+    console.print(
+        '[bold yellow]Sincronizando logs del servidor(bash script)[/bold yellow]')
     subprocess.check_call(muevelog+"%s" % "--start", shell=True)
 
 
@@ -206,45 +215,52 @@ def main():
             match sys.argv[1]:
                 case '--all':
                     _sync()
-                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
+                    console.print(
+                        '[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
                     sql_alch.carga_logs()
-                    console.print('[bold yellow]Registro de datos de ipinfo[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Registro de datos de ipinfo[/bold yellow]')
                     sql_alch.registro_ips()
-                    console.print('[bold yellow]Generando mapa de visitas[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Generando mapa de visitas[/bold yellow]')
                     sql_alch.mapsgen()
                 case '--sync':
                     _sync()
                 case '-c':
-                    console.print('[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
+                    console.print(
+                        '[bold yellow]Cargando logs en base de datos[/bold yellow]\n')
                     sql_alch.carga_logs()
                 case '-g':
-                    console.print('[bold yellow]Registro de datos de ipinfo[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Registro de datos de ipinfo[/bold yellow]')
                     sql_alch.registro_ips()
                 case '-d':
-                    console.print('[bold yellow]Consulta a base de datos:[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Consulta a base de datos:[/bold yellow]')
                     ip = sys.argv[2]
                     print_ipinfo(ip, None)
                 case '-D':
-                    console.print('[bold yellow]Consulta por archivo a base de datos:[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Consulta por archivo a base de datos:[/bold yellow]')
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], None)
                     else:
                         console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                                       '[red]] no es válido![/red]')
+                                      '[red]] no es válido![/red]')
                         sys.exit(0)
                 case '-f':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2], False)
                     else:
                         console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                               '[red]] no es válido[/red]')
+                                      '[red]] no es válido[/red]')
                         sys.exit(0)
                 case '-F':
                     if isfile(sys.argv[2]):
                         archivo_ips(sys.argv[2])
                     else:
                         console.print(f'[red]Archivo [[/red][magenta]{sys.argv[2]}[/magenta]'
-                               '[red]] no es válido[/red]')
+                                      '[red]] no es válido[/red]')
                         sys.exit(0)
                 case '-h':
                     uso()
@@ -256,7 +272,8 @@ def main():
                     ip = sys.argv[2]
                     print_ipinfo(ip)
                 case '-M':
-                    console.print('[bold yellow]Generando mapa de visitas[/bold yellow]')
+                    console.print(
+                        '[bold yellow]Generando mapa de visitas[/bold yellow]')
                     sql_alch.mapsgen()
                 case '-q':
                     match sys.argv[2]:
@@ -269,20 +286,25 @@ def main():
                         case '--pais-desde':
                             pais = sys.argv[3]
                             fecha_local = sys.argv[4]
-                            fecha_unix = sql_alch.fecha_error_to_epoch(sys.argv[4]+' 00:00:00')
-                            querys.pt_sel_pais_fecha(pais.upper(), fecha_unix, fecha_local)
+                            fecha_unix = sql_alch.fecha_error_to_epoch(
+                                sys.argv[4]+' 00:00:00')
+                            querys.pt_sel_pais_fecha(
+                                pais.upper(), fecha_unix, fecha_local)
                         case '--detalle-pais':
                             pais = sys.argv[3]
                             if len(sys.argv) > 4:
                                 if sys.argv[4].isnumeric():
                                     codigo = sys.argv[4]
-                                    querys.pt_visita_pais_detalle(pais.upper(), codigo)
+                                    querys.pt_visita_pais_detalle(
+                                        pais.upper(), codigo)
                                 else:
-                                    console.print(f'[magenta]-q --detalle-pais <pais> [/magenta][red][bold]<CODIGO> inválido ({sys.argv[4]})[/bold][/red]')
+                                    console.print(
+                                        f'[magenta]-q --detalle-pais <pais> [/magenta][red][bold]<CODIGO> inválido ({sys.argv[4]})[/bold][/red]')
                             else:
                                 querys.pt_visita_pais_detalle(pais.upper())
                         case _:
-                            console.print(f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
+                            console.print(
+                                f'[red] query desconocida [bold]{sys.argv[2]}[/bold][/red]')
                 case _:
                     ip = sys.argv[1]
                     print_ipinfo(ip, False)
@@ -303,7 +325,7 @@ def main():
 
 
 def uso_consultas():
-    ayuda = f"""
+    ayuda = """
     [bold blue]ipLocate[/bold blue]
 
         [deep_sky_blue1]Reportes según consultas a base de datos.
@@ -321,7 +343,7 @@ def uso_consultas():
 
 
 def uso():
-    ayuda = f"""
+    ayuda = """
     [bold blue]ipLocate[/bold blue]
 
         [deep_sky_blue1]Consulta en ipinfo.io (con o sin token) información sobre IP(s).
