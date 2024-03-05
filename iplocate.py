@@ -301,16 +301,22 @@ def main():
                             pais = sys.argv[3]
                             fecha_local = sys.argv[4]
                             fecha_unix = sql_alch.fecha_error_to_epoch(
-                                sys.argv[4]+' 00:00:00')
+                                sys.argv[4]+' 00:00:00'
+                            )
                             querys.pt_sel_pais_fecha(
-                                pais.upper(), fecha_unix, fecha_local)
+                                pais.upper(),
+                                fecha_unix,
+                                fecha_local
+                            )
                         case '--detalle-pais':
                             pais = sys.argv[3]
                             if len(sys.argv) > 4:
                                 if sys.argv[4].isnumeric():
                                     codigo = sys.argv[4]
                                     querys.pt_visita_pais_detalle(
-                                        pais.upper(), codigo)
+                                        pais.upper(),
+                                        codigo
+                                    )
                                 else:
                                     console.print(
                                         '[magenta]-q --detalle-pais <pais> '

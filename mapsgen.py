@@ -16,8 +16,13 @@ def map200(geolocs):
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
         marca200 = staticmaps.create_latlng(lat, lon)
-        cntxt200.add_object(staticmaps.Marker(
-            marca200, color=staticmaps.parse_color('#00ff29'), size=7))
+        cntxt200.add_object(
+            staticmaps.Marker(
+                marca200,
+                color=staticmaps.parse_color('#00ff29'),
+                size=7
+            )
+        )
 
     svg_image = cntxt200.render_svg(1920, 1080)
     with open(f"{selfpath}/maps/map_200.svg", "w", encoding="utf-8") as f:
@@ -51,15 +56,25 @@ def maps_gen(locs_200, locs_300):
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
         marca3 = staticmaps.create_latlng(lat, lon)
-        cntxtAll.add_object(staticmaps.Marker(
-            marca3, color=staticmaps.parse_color('#b20101'), size=5))
+        cntxtAll.add_object(
+            staticmaps.Marker(
+                marca3,
+                color=staticmaps.parse_color('#b20101'),
+                size=5
+            )
+        )
 
     for loc in locs_200:
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
         marca3 = staticmaps.create_latlng(lat, lon)
-        cntxtAll.add_object(staticmaps.Marker(
-            marca3, color=staticmaps.parse_color('#00ff29'), size=6))
+        cntxtAll.add_object(
+            staticmaps.Marker(
+                marca3,
+                color=staticmaps.parse_color('#00ff29'),
+                size=6
+            )
+        )
 
     svg_image = cntxtAll.render_svg(1920, 1080)
     with open(f"{selfpath}/maps/map_all.svg", "w", encoding="utf-8") as f:
@@ -78,15 +93,25 @@ def maps_thumbs(locs_200, locs_300):
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
         demo300 = staticmaps.create_latlng(lat, lon)
-        cntxtdemo.add_object(staticmaps.Marker(
-            demo300, color=staticmaps.parse_color('#b20101'), size=4))
+        cntxtdemo.add_object(
+            staticmaps.Marker(
+                demo300,
+                color=staticmaps.parse_color('#b20101'),
+                size=4
+            )
+        )
 
     for loc in locs_200:
         lat = float(loc[0].split(',')[0])
         lon = float(loc[0].split(',')[1])
         demo200 = staticmaps.create_latlng(lat, lon)
-        cntxtdemo.add_object(staticmaps.Marker(
-            demo200, color=staticmaps.parse_color('#00ff29'), size=5))
+        cntxtdemo.add_object(
+            staticmaps.Marker(
+                demo200,
+                color=staticmaps.parse_color('#00ff29'),
+                size=5
+            )
+        )
 
     svg_thumb = cntxtdemo.render_svg(1024, 768)
     with open(f"{selfpath}/maps/map_thumb.svg", "w", encoding="utf-8") as f:
