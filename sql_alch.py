@@ -230,18 +230,26 @@ def carga_access_log(log):
                                 fecha = None
                                 print('Exception split Fecha:', ex)
                             if ip_registrada(ip):
-                                session.add(Visita(ip=ip,
-                                                   cod_html=codigo,
-                                                   fecha=fecha,
-                                                   metodo=metodo,
-                                                   consulta=url,
-                                                   registro=1))
+                                session.add(
+                                    Visita(
+                                        ip=ip,
+                                        cod_html=codigo,
+                                        fecha=fecha,
+                                        metodo=metodo,
+                                        consulta=url,
+                                        registro=1
+                                    )
+                                )
                             else:
-                                session.add(Visita(ip=ip,
-                                                   cod_html=codigo,
-                                                   fecha=fecha,
-                                                   metodo=metodo,
-                                                   consulta=url))
+                                session.add(
+                                    Visita(
+                                        ip=ip,
+                                        cod_html=codigo,
+                                        fecha=fecha,
+                                        metodo=metodo,
+                                        consulta=url
+                                    )
+                                )
                 except Exception as ex:
                     print('Exception: ', ex)
             try:
