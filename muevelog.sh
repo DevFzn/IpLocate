@@ -75,7 +75,7 @@ extrae_logs(){
 concat_log(){
     log_tipo="${1}"
     if [[ "$(ls $destino_log/$log_tipo.* 2>/dev/null)" ]]; then
-        printf '%b   - Concatenando log %s %b' "${GRn}" "${1}" "${RST}"
+        printf '%b   - Concatenando %s %b' "${GRn}" "${1}" "${RST}"
         for file in $(\ls -v $destino_log/$log_tipo.*); do 
             cat $file >> $destino_log/$log_tipo
             rm -f $file
