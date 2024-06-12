@@ -20,7 +20,7 @@ def map200(geolocs):
             staticmaps.Marker(
                 marca200,
                 color=staticmaps.parse_color('#00ff29'),
-                size=7
+                size=4
             )
         )
 
@@ -38,7 +38,7 @@ def map300(geolocs):
         lon = float(loc[0].split(',')[1])
         marca300 = staticmaps.create_latlng(lat, lon)
         cntxt300.add_object(staticmaps.Marker(
-            marca300, color=staticmaps.parse_color('#b20101'), size=5))
+            marca300, color=staticmaps.parse_color('#b20101'), size=3))
 
     svg_image = cntxt300.render_svg(1920, 1080)
     with open(f"{selfpath}/maps/map_300.svg", "w", encoding="utf-8") as f:
@@ -60,7 +60,7 @@ def maps_gen(locs_200, locs_300):
             staticmaps.Marker(
                 marca3,
                 color=staticmaps.parse_color('#b20101'),
-                size=5
+                size=3
             )
         )
 
@@ -72,7 +72,7 @@ def maps_gen(locs_200, locs_300):
             staticmaps.Marker(
                 marca3,
                 color=staticmaps.parse_color('#00ff29'),
-                size=6
+                size=4
             )
         )
 
@@ -97,7 +97,7 @@ def maps_thumbs(locs_200, locs_300):
             staticmaps.Marker(
                 demo300,
                 color=staticmaps.parse_color('#b20101'),
-                size=4
+                size=3
             )
         )
 
@@ -109,7 +109,7 @@ def maps_thumbs(locs_200, locs_300):
             staticmaps.Marker(
                 demo200,
                 color=staticmaps.parse_color('#00ff29'),
-                size=5
+                size=3.5
             )
         )
 
